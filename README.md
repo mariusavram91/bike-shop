@@ -138,10 +138,10 @@ _As a customer, I want to view, buy, or customise bicycles so that I can select 
 
 Backend:
 
-- [ ] Define a SQLModel schema for products, parts, and prices. Should differenciate if the product is customisable or not.
-- [ ] Implement APIs for retrieving products and their parts/variants.
-- [ ] Implement pagination and filtering for products.
-- [ ] Add tests and allow CORS for frontend.
+- [x] Define a SQLModel schema for products, parts, and prices. Should differenciate if the product is customisable or not.
+- [x] Implement APIs for retrieving products and their parts/variants.
+- [ ] Implement pagination for products.
+- [x] Add tests and allow CORS for frontend.
 
 Frontend:
 
