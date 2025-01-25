@@ -13,11 +13,15 @@
             :key="variant.id"
             :class="[
               'block w-full py-2 mb-2 rounded transition-colors',
-              'bg-blue-500 text-white hover:bg-blue-600',
+              variant.is_available
+                ? 'bg-blue-500 text-white hover:bg-blue-600'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed',
             ]"
+            :disabled="!variant.is_available"
             @click="selectChoice(index + 1, part.id, variant.name, variant.price)"
           >
             {{ variant.name }} (+{{ variant.price }} €)
+            <span class="text-sm text-red-500" v-if="!variant.is_available">Not in stock</span>
           </button>
         </div>
 

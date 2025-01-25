@@ -3,7 +3,7 @@
 <template>
   <div class="flex gap-20">
     <BuilderWizard
-      :product="current_product || {}"
+      :product="current_product"
       :productParts="current_product?.parts || []"
       @total-price-calculated="handleTotalPrice"
     />
@@ -20,6 +20,7 @@
 
       <button
         @click="addToCart"
+        :disabled="!total_price"
         class="mt-4 w-full py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
       >
         Add to Cart

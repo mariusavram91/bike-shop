@@ -31,6 +31,8 @@ class PartVariantSchema(BaseSchema):
     part_id: UUID
     name: str
     price: float
+    is_available: bool
+    stock_quantity: int
 
 
 class PartVariantCreateSchema(BaseModel):
@@ -41,6 +43,8 @@ class PartVariantCreateSchema(BaseModel):
     part_id: UUID
     name: str
     price: float
+    is_available: bool
+    stock_quantity: int
 
 
 class PartVariantUpdateSchema(BaseModel):
@@ -51,6 +55,8 @@ class PartVariantUpdateSchema(BaseModel):
     part_id: Optional[UUID] = None
     name: Optional[str] = None
     price: Optional[float] = None
+    is_available: Optional[bool] = None
+    stock_quantity: Optional[int] = None
 
 
 class ProductPartSchema(BaseSchema):
@@ -92,6 +98,8 @@ class ProductSchema(BaseSchema):
     category: str
     base_price: float
     is_custom: bool
+    is_available: bool
+    stock_quantity: int
 
     parts: Optional[List[ProductPartSchema]] = []
 
@@ -106,6 +114,8 @@ class ProductCreateSchema(BaseModel):
     category: str
     base_price: float
     is_custom: bool
+    is_available: bool
+    stock_quantity: int
 
 
 class ProductUpdateSchema(BaseModel):
@@ -118,3 +128,5 @@ class ProductUpdateSchema(BaseModel):
     category: Optional[str] = None
     base_price: Optional[float] = None
     is_custom: Optional[bool] = None
+    is_available: Optional[bool] = None
+    stock_quantity: Optional[int] = None

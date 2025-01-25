@@ -15,20 +15,25 @@
 
       <p class="text-xl font-bold text-gray-800 mt-4 text-center">{{ product.base_price }} €</p>
 
-      <button
-        v-if="!product.is_custom"
-        @click="addToCart"
-        class="mt-4 w-full py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+      <template v-if="!product.is_available || product.stock_quantity < 1">
+        <span class="mt-4 w-full py-2 text-center text-red-500">Out of stock</span>
+      </template>
+      <template v-else>
+        <button
+          v-if="!product.is_custom"
+          @click="addToCart"
+          class="mt-4 w-full py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+        >
+          Add to Cart
+        </button>
+        <button
+          v-else
+          @click="goToBuilder"
+          class="mt-4 w-full py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+        >
+          Customise
+        </button></template
       >
-        Add to Cart
-      </button>
-      <button
-        v-else
-        @click="goToBuilder"
-        class="mt-4 w-full py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
-      >
-        Customise
-      </button>
     </div>
   </div>
 </template>

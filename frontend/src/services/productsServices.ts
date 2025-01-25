@@ -13,6 +13,8 @@ export interface Product {
     category: string
     base_price: number
     is_custom: boolean
+    is_available: boolean
+    stock_quantity: number
 
     parts: ProductPart[]
 }
@@ -38,6 +40,8 @@ export interface PartVariant {
     part_id: string
     name: string
     price: number
+    is_available: boolean
+    stock_quantity: number
 }
 
 /**

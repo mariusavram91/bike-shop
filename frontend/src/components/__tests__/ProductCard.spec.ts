@@ -14,6 +14,8 @@ const mockProduct: Product = {
   category: 'Bikes',
   base_price: 499.99,
   is_custom: false,
+  is_available: true,
+  stock_quantity: 4,
   parts: [],
 }
 

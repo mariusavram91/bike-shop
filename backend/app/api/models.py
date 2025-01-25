@@ -45,6 +45,8 @@ class Product(BaseModel, table=True):
         category (str): The category of the product.
         base_price (float): The base price of the product.
         is_custom (bool): Whether the product is a custom product.
+        is_available (bool): Whether the product is available for purchase.
+        stock_quantity (int): The quantity of the product in stock.
         parts (List[ProductPart]): The parts associated with the product.
     """
 
@@ -55,6 +57,8 @@ class Product(BaseModel, table=True):
     base_price: float
     is_custom: bool
     description: Optional[str] = None
+    is_available: bool
+    stock_quantity: int
 
     parts: List["ProductPart"] = Relationship(
         back_populates="product",
@@ -94,6 +98,9 @@ class PartVariant(BaseModel, table=True):
         part_id (UUID): The ID of the associated product part.
         name (str): The name of the part variant.
         price (float): The price of the part variant.
+        is_available (bool): Whether the part variant is available for
+            selection.
+        stock_quantity (int): The stock quantity of the part variant.
         part (Optional[ProductPart]): The product part that this variant
             belongs to.
     """
@@ -102,6 +109,8 @@ class PartVariant(BaseModel, table=True):
 
     name: str
     price: float
+    is_available: bool
+    stock_quantity: int
     part_id: UUID = Field(foreign_key="product_parts.id")
 
     part: Optional[ProductPart] = Relationship(

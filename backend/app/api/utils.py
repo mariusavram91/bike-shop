@@ -37,6 +37,8 @@ def calculate_total_price(
         variant: Optional[PartVariant] = session.get(PartVariant, variant_id)
         if not variant:
             raise ValueError(f"Variant with ID {variant_id} not found.")
+        if not variant.is_available or variant.stock_quantity <= 0:
+            raise ValueError(f"Variant with ID {variant_id} is out of stock.")
 
         total_price += variant.price
 

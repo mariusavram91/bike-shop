@@ -3,9 +3,21 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 
-import type { ProductPart } from '@/services/productsServices'
+import type { Product, ProductPart } from '@/services/productsServices'
 
 import BuilderWizard from '../BuilderWizard.vue'
+
+const mockProduct: Product = {
+  id: '1',
+  name: 'Test Bike',
+  description: 'This is a test bike description.',
+  category: 'Bikes',
+  base_price: 499.99,
+  is_custom: true,
+  is_available: true,
+  stock_quantity: 4,
+  parts: [],
+}
 
 const mockProductParts: ProductPart[] = [
   {
@@ -18,12 +30,16 @@ const mockProductParts: ProductPart[] = [
         part_id: '1',
         name: 'Aluminum Frame',
         price: 300,
+        is_available: true,
+        stock_quantity: 4,
       },
       {
         id: '1-2',
         part_id: '1',
         name: 'Carbon Fiber Frame',
         price: 500,
+        is_available: true,
+        stock_quantity: 4,
       },
     ],
   },
@@ -37,12 +53,16 @@ const mockProductParts: ProductPart[] = [
         part_id: '2',
         name: 'Standard Wheels',
         price: 150,
+        is_available: true,
+        stock_quantity: 4,
       },
       {
         id: '2-2',
         part_id: '2',
         name: 'Racing Wheels',
         price: 250,
+        is_available: true,
+        stock_quantity: 4,
       },
     ],
   },
@@ -51,16 +71,16 @@ const mockProductParts: ProductPart[] = [
 describe('CustomProductBuilder.vue', () => {
   it('renders the base price and product title', () => {
     const wrapper = mount(BuilderWizard, {
-      props: { productParts: mockProductParts },
+      props: { product: mockProduct, productParts: mockProductParts },
     })
 
     expect(wrapper.text()).toContain('Custom Product Builder')
-    expect(wrapper.text()).toContain('Base Price: 500€')
+    expect(wrapper.text()).toContain('Base Price: 499.99€')
   })
 
   it('renders product parts and their variants', () => {
     const wrapper = mount(BuilderWizard, {
-      props: { productParts: mockProductParts },
+      props: { product: mockProduct, productParts: mockProductParts },
     })
 
     const partHeaders = wrapper.findAll('h3')
@@ -76,7 +96,7 @@ describe('CustomProductBuilder.vue', () => {
 
   it('updates selected choices and advances the step when a variant is selected', async () => {
     const wrapper = mount(BuilderWizard, {
-      props: { productParts: mockProductParts },
+      props: { product: mockProduct, productParts: mockProductParts },
     })
 
     const firstVariantButton = wrapper.find('button') // Select "Aluminum Frame"
@@ -91,7 +111,7 @@ describe('CustomProductBuilder.vue', () => {
 
   it('displays the selected choice for a part', async () => {
     const wrapper = mount(BuilderWizard, {
-      props: { productParts: mockProductParts },
+      props: { product: mockProduct, productParts: mockProductParts },
     })
 
     const firstVariantButton = wrapper.find('button') // Select "Aluminum Frame"
@@ -103,7 +123,7 @@ describe('CustomProductBuilder.vue', () => {
 
   it('undoes the last action and reverts the current step', async () => {
     const wrapper = mount(BuilderWizard, {
-      props: { productParts: mockProductParts },
+      props: { product: mockProduct, productParts: mockProductParts },
     })
 
     const firstVariantButton = wrapper.find('button') // Select "Aluminum Frame"
@@ -116,7 +136,7 @@ describe('CustomProductBuilder.vue', () => {
 
   it('resets all selections and the step when reset is triggered', async () => {
     const wrapper = mount(BuilderWizard, {
-      props: { productParts: mockProductParts },
+      props: { product: mockProduct, productParts: mockProductParts },
     })
 
     const firstVariantButton = wrapper.find('button') // Select "Aluminum Frame"
@@ -130,7 +150,7 @@ describe('CustomProductBuilder.vue', () => {
 
   it('disables the undo button when no history exists', () => {
     const wrapper = mount(BuilderWizard, {
-      props: { productParts: mockProductParts },
+      props: { product: mockProduct, productParts: mockProductParts },
     })
 
     const undoButton = wrapper.find('button:disabled')

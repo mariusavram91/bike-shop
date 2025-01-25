@@ -19,6 +19,8 @@ def sample_data(test_db: Session) -> dict[str, Any]:
         category="Electronics",
         base_price=100.0,
         is_custom=False,
+        is_available=True,
+        stock_quantity=10,
     )
     test_db.add(product)
 
@@ -27,18 +29,24 @@ def sample_data(test_db: Session) -> dict[str, Any]:
         part_id=uuid4(),
         name="Variant 1",
         price=20.0,
+        is_available=True,
+        stock_quantity=5,
     )
     variant2 = PartVariant(
         id=uuid4(),
         part_id=uuid4(),
         name="Variant 2",
         price=30.0,
+        is_available=True,
+        stock_quantity=3,
     )
     variant3 = PartVariant(
         id=uuid4(),
         part_id=uuid4(),
         name="Variant 3 (Out of Stock)",
         price=15.0,
+        is_available=True,
+        stock_quantity=0,
     )
     test_db.add_all([variant1, variant2, variant3])
 
@@ -67,6 +75,20 @@ def test_calculate_total_price_valid(
         + variants[0].price  # + 20
         + variants[1].price  # + 30
     )
+
+
+def test_calculate_total_price_variant_out_of_stock(
+    test_db: Session, sample_data: dict[str, Any]
+) -> None:
+    product: Product = sample_data["product"]
+    variants: List[PartVariant] = sample_data["variants"]
+
+    with pytest.raises(ValueError, match="is out of stock"):
+        calculate_total_price(
+            test_db,
+            product_id=product.id,
+            selected_variant_ids=[variants[2].id],  # Out of stock variant
+        )
 
 
 def test_calculate_total_price_product_not_found(

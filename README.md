@@ -160,14 +160,14 @@ _As a customer, I want to know when a selected part is out of stock so that I ca
 
 Backend:
 
-- [ ] Add fields to products and variants to track stock status and availability.
-- [ ] Expose this information in the API endpoints.
-- [ ] Add tests
+- [x] Add fields to products and variants to track stock status and availability.
+- [x] Expose this information in the API endpoints.
+- [x] Add tests
 
 Frontend:
 
-- [ ] Display unavailable or out of stock options as grayed-out and with an "Out of Stock" tag.
-- [ ] Add tests
+- [x] Display unavailable or out of stock options as grayed-out and with an "Out of Stock" tag.
+- [x] Add tests
 
 Out of scope:
 

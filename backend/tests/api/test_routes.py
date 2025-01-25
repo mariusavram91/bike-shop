@@ -25,6 +25,8 @@ def test_create_product(test_client: TestClient) -> None:
         "base_price": 100.0,
         "category": "Test Category",
         "is_custom": False,
+        "is_available": True,
+        "stock_quantity": 10,
     }
     response: Response = test_client.post(
         "/api/v1/products/",
@@ -57,6 +59,8 @@ def test_get_product_by_id(test_db: Session, test_client: TestClient) -> None:
             category="Bicycle",
             base_price=100.0,
             is_custom=False,
+            is_available=True,
+            stock_quantity=10,
         ),
     )
     response: Response = test_client.get(f"/api/v1/products/{product.id}")
@@ -82,6 +86,8 @@ def test_get_all_products(test_db: Session, test_client: TestClient) -> None:
             category="Bicycle",
             base_price=100.0,
             is_custom=False,
+            is_available=True,
+            stock_quantity=10,
         ),
     )
     create_product(
@@ -92,6 +98,8 @@ def test_get_all_products(test_db: Session, test_client: TestClient) -> None:
             category="Bicycle",
             base_price=100.0,
             is_custom=False,
+            is_available=True,
+            stock_quantity=10,
         ),
     )
 
@@ -111,6 +119,8 @@ def test_update_product(test_db: Session, test_client: TestClient) -> None:
             category="Bicycle",
             base_price=100.0,
             is_custom=False,
+            is_available=True,
+            stock_quantity=10,
         ),
     )
     updated_data = {
@@ -150,6 +160,8 @@ def test_delete_product(test_db: Session, test_client: TestClient) -> None:
             category="Bicycle",
             base_price=100.0,
             is_custom=False,
+            is_available=True,
+            stock_quantity=10,
         ),
     )
     response: Response = test_client.delete(f"/api/v1/products/{product.id}")
@@ -178,6 +190,8 @@ def test_get_all_products_pagination(
                 category="Bicycle",
                 base_price=100.0 + i,
                 is_custom=False,
+                is_available=True,
+                stock_quantity=10 + i,
             ),
         )
 
