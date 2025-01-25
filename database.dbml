@@ -1,0 +1,84 @@
+// Bike Shop Database Structure in DBML
+
+Table products {
+  id uuid [primary key, note: "Unique identifier for the product"]
+  name varchar [note: "Name of the product (Bicycle, Ski)"]
+  description text [note: "Detailed description of the product"]
+  category varchar [note: "Category of the product (Bicycles, Skis, Surfboards)"]
+  base_price decimal [note: "Base price of the product"]
+  is_custom bool [note: "Indicates if the product is customisable"]
+  is_available boolean [note: "Show is this product is currently in stock"]
+  stock_quantity int [note: "Current stock quantity of the product"]
+  created_at timestamp [note: "Timestamp of when the product was created"]
+  updated_at timestamp [note: "Timestamp of the last update to the product"]
+}
+
+Table product_parts {
+  id uuid [primary key, note: "Unique identifier for the product part"]
+  product_id uuid [note: "Identifier of the parent product this part belongs to"]
+  name varchar [note: "Name of the customisable part (Frame, Wheels)"]
+  created_at timestamp [note: "Timestamp of when the part was created"]
+  updated_at timestamp [note: "Timestamp of the last update to the part"]
+}
+
+Table part_variants {
+  id uuid [primary key, note: "Unique identifier for the part variant"]
+  part_id uuid [note: "Identifier of the parent part this variant belongs to"]
+  name varchar [note: "Name of the option (Full-suspension, Mountain wheels)"]
+  price decimal [note: "Cost of this variant/option"]
+  is_available boolean [note: "Show if the variant/option is in stock"]
+  stock_quantity int [note: "Current stock quantity of this option"]
+  created_at timestamp [note: "Timestamp of when the variant was created"]
+  updated_at timestamp [note: "Timestamp of the last update to the variant"]
+}
+
+Table part_variants_dependencies {
+  variant_id uuid [note: "ID of the part variant this dependency applies to"]
+  restrictions text [note: "Comma separated IDs of other variants that cannot be used with this variant"]
+}
+
+Table custom_prices {
+  id uuid [primary key, note: "Unique identifier for the custom pricing record"]
+  variant_id uuid [ref: > part_variants.id, note: "Identifier of the part variant the additional price applies to"]
+  dependent_variant_id uuid [ref: > part_variants.id, note: "Identifier of the dependent part variant that makes the variant have a custom price"]
+  custom_price decimal [note: "Custom price based on selected options, it goes on top of the variant's price"]
+  created_at timestamp [note: "Timestamp of when the custom price was created"]
+  updated_at timestamp [note: "Timestamp of the last update to the custom price"]
+}
+
+Table carts {
+  id uuid [primary key, note: "Unique identifier for the cart"]
+  user_id uuid [note: "Identifier of the user who owns this cart, it's optional"]
+  total_price decimal [note: "Total price of the cart including all items in the cart"]
+  purchased bool [note: "Indicates whether the cart has been purchased"]
+  created_at timestamp [note: "Timestamp of when the cart was created"]
+  updated_at timestamp [note: "Timestamp of the last update to the cart"]
+}
+
+Table cart_items {
+  id uuid [primary key, note: "Unique identifier for the cart item"]
+  cart_id uuid [note: "Identifier of the cart this item belongs to"]
+  product_id uuid [note: "Identifier of the product"]
+  selected_parts text [note: "Comma separated list of selected variants/options ids customisable products, it is optional"]
+  total_price decimal [note: "Total price of the cart item including selected parts"]
+  created_at timestamp [note: "Timestamp of when the cart item was created"]
+  updated_at timestamp [note: "Timestamp of the last update to the cart item"]
+}
+
+Table users {
+  id uuid [primary key, note: "Unique identifier for the user"]
+  username varchar [note: "Unique username for the user"]
+  password text [note: "Encrypted password of the user"]
+  name varchar [note: "Full name of the user"]
+  role varchar [note: "Role of the user (admin or customer)"]
+  created_at timestamp [note: "Timestamp of when the user account was created"]
+  updated_at timestamp [note: "Timestamp of the last update to the user account"]
+}
+
+// Relationships
+Ref: product_parts.product_id > products.id // One product can have multiple parts
+Ref: part_variants.part_id > product_parts.id // One part can have multiple options/variants
+Ref: part_variants_dependencies.variant_id > part_variants.id // The restrictions belong to a specific variant
+Ref: cart_items.cart_id > carts.id // Cart items belong to a specific cart
+Ref: cart_items.product_id > products.id // Cart items reference specific products
+Ref: carts.user_id > users.id // A cart belongs to a user
