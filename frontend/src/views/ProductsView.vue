@@ -19,6 +19,7 @@ import { useRouter } from 'vue-router'
 import ProductCard from '@/components/ProductCard.vue'
 import { useProductsStore } from '@/stores/useProductsStore'
 import type { Product } from '@/services/productsServices'
+import { useCartStore } from '@/stores/useCartStore'
 
 export default {
   name: 'ProductsPage',
@@ -28,9 +29,11 @@ export default {
   setup() {
     const router = useRouter()
     const productsStore = useProductsStore()
+    const cartStore = useCartStore()
 
     onMounted(async () => {
       await productsStore.getProducts()
+      cartStore.loadCartFromLocalStorage()
     })
 
     const products = computed(() => productsStore.products)
@@ -38,6 +41,7 @@ export default {
     return {
       router,
       products,
+      cartStore,
     }
   },
   methods: {
@@ -46,7 +50,10 @@ export default {
      * @param {Product} product - The product that was added to the cart.
      */
     handleAddToCart(product: Product) {
-      console.log({ 'Added to cart': product })
+      this.cartStore.addToCart({
+        product_id: product.id,
+        total_price: product.base_price,
+      })
     },
 
     /**

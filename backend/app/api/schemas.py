@@ -23,6 +23,70 @@ class BaseSchema(BaseModel):
     updated_at: datetime
 
 
+class CartItemSchema(BaseSchema):
+    """
+    Schema for representing an item in a shopping cart.
+    """
+
+    cart_id: Optional[UUID] = None
+    product_id: UUID
+    selected_parts: Optional[str] = None
+    total_price: float
+
+
+class CartItemCreateSchema(BaseModel):
+    """
+    Schema for creating an item in a shopping cart.
+    """
+
+    cart_id: Optional[UUID] = None
+    product_id: UUID
+    selected_parts: Optional[str] = None
+    total_price: float
+
+
+class CartItemUpdateSchema(BaseModel):
+    """
+    Schema for updating an item in a shopping cart (all fields optional).
+    """
+
+    cart_id: Optional[UUID] = None
+    product_id: Optional[UUID] = None
+    selected_parts: Optional[str] = None
+    total_price: Optional[float] = None
+
+
+class CartSchema(BaseSchema):
+    """
+    Schema for representing a shopping cart.
+    """
+
+    purchased: bool
+    total_price: float
+
+    items: Optional[List[CartItemSchema]] = []
+
+
+class CartCreateSchema(BaseModel):
+    """
+    Schema for creating a shopping cart.
+    """
+
+    purchased: bool
+    total_price: float
+
+    items: List[CartItemCreateSchema]
+
+
+class CartUpdateSchema(BaseModel):
+    """
+    Schema for updating a shopping cart (all fields optional).
+    """
+
+    purchased: Optional[bool] = None
+    total_price: Optional[float] = None
+
+
 class PartVariantSchema(BaseSchema):
     """
     Schema for representing a part variant.

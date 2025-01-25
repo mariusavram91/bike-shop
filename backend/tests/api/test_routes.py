@@ -236,3 +236,63 @@ def test_get_all_products_pagination(
 
     products_empty_page = response_empty_page.json()
     assert len(products_empty_page) == 0
+
+
+# Tests for Cart route
+
+
+def test_create_cart_with_items(
+    test_db: Session,
+    test_client: TestClient,
+) -> None:
+    product = Product(
+        id=uuid4(),
+        name="Test Product",
+        description="A sample product",
+        category="Bicycle",
+        base_price=100.0,
+        is_custom=False,
+        is_available=True,
+        stock_quantity=10,
+    )
+    test_db.add(product)
+    test_db.commit()
+
+    cart_data = {
+        "purchased": False,
+        "total_price": 200.0,
+        "items": [
+            {
+                "product_id": str(product.id),
+                "selected_parts": "1, 2",
+                "total_price": 100.0,
+            },
+            {
+                "product_id": str(product.id),
+                "selected_parts": "2, 5",
+                "total_price": 100.0,
+            },
+        ],
+    }
+
+    response: Response = test_client.post(
+        "/api/v1/carts",
+        json=cart_data,
+    )
+
+    assert response.status_code == 200
+    cart = response.json()
+    assert "id" in cart
+    assert cart["total_price"] == 200.0
+    assert len(cart["items"]) == 2
+
+    cart_item_1 = cart["items"][0]
+    cart_item_2 = cart["items"][1]
+
+    assert cart_item_1["product_id"] == str(product.id)
+    assert cart_item_1["selected_parts"] == "1, 2"
+    assert cart_item_1["total_price"] == 100.0
+
+    assert cart_item_2["product_id"] == str(product.id)
+    assert cart_item_2["selected_parts"] == "2, 5"
+    assert cart_item_2["total_price"] == 100.0

@@ -1,15 +1,17 @@
 <!-- src/views/CustomProductBuilder.vue -->
 
 <template>
-  <div class="flex gap-20">
+  <div class="w-full flex gap-20">
     <BuilderWizard
       :product="current_product"
       :productParts="current_product?.parts || []"
       @total-price-calculated="handleTotalPrice"
+      @selected-parts="handleSelectedVariants"
+      class="w-1/2"
     />
 
     <div
-      class="w-full max-w-lg bg-white p-6 rounded-lg shadow-md text-black flex flex-col justify-between"
+      class="w-1/2 max-w-lg bg-white p-6 rounded-lg shadow-md text-black flex flex-col justify-between"
     >
       <img src="/bike-1.jpeg" class="w-full max-h-85 object-cover rounded-md" />
 
@@ -34,6 +36,8 @@ import { onMounted, ref } from 'vue'
 
 import BuilderWizard from '@/components/BuilderWizard.vue'
 import { useProductsStore } from '@/stores/useProductsStore'
+import { useCartStore } from '@/stores/useCartStore'
+import { PartVariant } from '@/services/productsServices'
 
 export default {
   components: {
@@ -47,24 +51,35 @@ export default {
   },
   setup(props) {
     const productsStore = useProductsStore()
+    const cartStore = useCartStore()
 
     const total_price = ref<number>(0)
+    const selected_parts = ref<string>('')
 
     onMounted(async () => {
       await productsStore.getProducts()
+      cartStore.loadCartFromLocalStorage()
     })
 
     const current_product = productsStore.getProductById(props.productId)
 
-    return { current_product, total_price }
+    return { current_product, total_price, cartStore, selected_parts }
   },
   methods: {
     addToCart() {
-      console.log({ 'Adding custom product to the cart': this.current_product })
+      this.cartStore.addToCart({
+        product_id: this.current_product?.id,
+        total_price: this.total_price,
+        selected_parts: this.selected_parts,
+      })
     },
 
     handleTotalPrice(total: number) {
       this.total_price = total
+    },
+
+    handleSelectedVariants(variants: PartVariant[]) {
+      this.selected_parts = Object.keys(variants).join(',')
     },
   },
 }

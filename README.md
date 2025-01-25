@@ -173,39 +173,21 @@ Out of scope:
 
 Updating the stock availability in real time.
 
-### Manage product catalog
-
-_As the admin (Marcus), I want to manage the inventory (add, update, or delete products and parts) so that I can keep the inventory up to date._
-
-Backend:
-
-- [ ] Add API endpoints for creating, updating (including availability, prices, and stock), and deleting products and parts.
-- [ ] Add tests
-
-Frontend:
-
-- [ ] Build a simple admin dashboard with forms for managing products and parts.
-- [ ] Add tests
-
-Out of scope:
-
-Uploading images for products and parts/variants.
-
 ### Add to cart
 
 _As a customer, I want to add my custom bike selection to the cart so that I can either purchase it now or later._
 
 Backend:
 
-- [ ] Define SQLModel models for the cart and cart items.
-- [ ] Implement an API and CRUD services to save the selected configuration to the cart.
-- [ ] Add tests
+- [x] Define SQLModel models for the cart and cart items.
+- [x] Implement an API and CRUD services to save the selected configuration to the cart.
+- [x] Add tests
 
 Frontend:
 
-- [ ] Add an "Add to Cart" button that saves the cart and cart items in the database and in the browser's localstorage. It should be able to handle adding multiple custom bikes to the cart.
-- [ ] Add a cart icon that changes when there are items in the cart.
-- [ ] Add tests
+- [x] Add an "Add to Cart" button that saves the cart and cart items in the database and in the browser's localstorage. It should be able to handle adding multiple custom bikes to the cart.
+- [x] Add a cart icon that changes when there are items in the cart.
+- [x] Add tests
   
 Out of scope:
 
@@ -248,6 +230,24 @@ Frontend:
 - [ ] Update pricing in the bike builder view considering custom pricing dependencies.
 - [ ] Add tests.
 
+### Manage product catalog
+
+_As the admin (Marcus), I want to manage the inventory (add, update, or delete products and parts) so that I can keep the inventory up to date._
+
+Backend:
+
+- [x] Add API endpoints for creating, updating (including availability, prices, and stock), and deleting products and parts.
+- [x] Add tests
+
+Frontend:
+
+- [ ] Build a simple admin dashboard with forms for managing products and parts.
+- [ ] Add tests
+
+Out of scope:
+
+Uploading images for products and parts/variants.
+
 ### View cart summary
 
 _As a customer, I want to view a summary of my cart, including item details and the total price, so that I can confirm my purchase._
@@ -275,8 +275,8 @@ _As Marcus (the admin), I want to mark certain parts as "temporarily out of stoc
 
 Backend:
 
-- [ ] Add API enpoints for marking parts in/out of stock and updating the number of items in stock.
-- [ ] Add tests.
+- [x] Add API enpoints for marking parts in/out of stock and updating the number of items in stock.
+- [x] Add tests.
 
 Frontend:
 
@@ -293,9 +293,9 @@ _As Marcus (the admin), I want to manage categories for products so that I can p
 
 Backend:
 
-- [ ] Add a category field in the products table.
-- [ ] Expose the field in the API for edit in the admin interface.
-- [ ] Add tests.
+- [x] Add a category field in the products table.
+- [x] Expose the field in the API for edit in the admin interface.
+- [x] Add tests.
 
 Frontend:
 

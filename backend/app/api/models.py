@@ -48,6 +48,7 @@ class Product(BaseModel, table=True):
         is_available (bool): Whether the product is available for purchase.
         stock_quantity (int): The quantity of the product in stock.
         parts (List[ProductPart]): The parts associated with the product.
+        cart_items (List[CartItem]): The cart items that contain this product.
     """
 
     __tablename__: str = "products"
@@ -61,6 +62,9 @@ class Product(BaseModel, table=True):
     stock_quantity: int
 
     parts: List["ProductPart"] = Relationship(
+        back_populates="product",
+    )
+    cart_items: List["CartItem"] = Relationship(
         back_populates="product",
     )
 
@@ -115,4 +119,54 @@ class PartVariant(BaseModel, table=True):
 
     part: Optional[ProductPart] = Relationship(
         back_populates="variants",
+    )
+
+
+class Cart(BaseModel, table=True):
+    """
+    Represents a shopping cart. It omits the user for the moment.
+
+    Attributes:
+        purchased (bool): Whether the cart has been purchased or not.
+        total_price (float): The total price of the cart including all
+            products.
+        items (List[CartItem]): The items contained in the cart.
+    """
+
+    __tablename__: str = "carts"
+
+    purchased: bool
+    total_price: float
+
+    items: List["CartItem"] = Relationship(
+        back_populates="cart",
+    )
+
+
+class CartItem(BaseModel, table=True):
+    """
+    Represents an item in a shopping cart.
+
+    Attributes:
+        cart_id (UUID): The ID of the cart that the item belongs to.
+        product_id (UUID): The ID of the product for this item.
+        selected_parts (Optional[str]): A string containing selected parts
+            ids for the item, separated by commas.
+        total_price (float): The total price of the item.
+        cart (Optional[Cart]): The cart that this item belongs to.
+        product (Optional[Product]): The product associated with the cart item.
+    """
+
+    __tablename__: str = "cart_items"
+
+    cart_id: UUID = Field(foreign_key="carts.id")
+    product_id: UUID = Field(foreign_key="products.id")
+    selected_parts: Optional[str]
+    total_price: float
+
+    cart: Optional[Cart] = Relationship(
+        back_populates="items",
+    )
+    product: Optional[Product] = Relationship(
+        back_populates="cart_items",
     )

@@ -8,11 +8,13 @@ from sqlmodel import Session
 
 from app.database import get_session
 from app.api.models import (
+    Cart,
     Product,
     ProductPart,
     PartVariant,
 )
 from app.api.services import (
+    create_cart_with_items,
     create_product,
     get_product_by_id,
     get_all_products,
@@ -30,6 +32,8 @@ from app.api.services import (
     delete_part_variant,
 )
 from app.api.schemas import (
+    CartCreateSchema,
+    CartSchema,
     PartVariantCreateSchema,
     PartVariantSchema,
     PartVariantUpdateSchema,
@@ -489,3 +493,40 @@ def delete_part_variant_route(
             status_code=404,
             detail="Part variant not found",
         )
+
+
+@router.post("/carts", response_model=CartSchema)
+def create_cart_with_items_route(
+    cart_data: CartCreateSchema,
+    session: Session = Depends(get_session),
+) -> Cart:
+    """
+    Create a new cart and add a list of items to it in bulk.
+
+    This route creates a new cart for a user, and adds multiple items to the
+    cart based on the `items` parameter. The `items` are provided as a list of
+    CartItem objects. After the cart is created and the items are added, the
+    created cart is returned.
+
+    Args:
+        cart_data (CartCreateSchema): An object for a Cart and a list of
+            CartItem objects to be added to the cart.
+        session (Session): The database session for executing operations.
+
+    Returns:
+        Cart: The newly created cart with the added items.
+
+    Raises:
+        HTTPException: If an error occurs during cart creation or item
+        addition, a 400 error with the exception message is raised.
+    """
+    try:
+        cart: Cart = create_cart_with_items(
+            session=session,
+            cart_data=cart_data,
+        )
+
+        return cart
+
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

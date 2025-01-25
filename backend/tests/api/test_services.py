@@ -12,6 +12,7 @@ from app.api.models import (
     PartVariant,
 )
 from app.api.services import (
+    create_cart_with_items,
     create_product,
     get_product_by_id,
     get_all_products,
@@ -20,10 +21,13 @@ from app.api.services import (
     create_product_part,
 )
 from app.api.schemas import (
+    CartCreateSchema,
+    CartItemCreateSchema,
     ProductCreateSchema,
     ProductPartCreateSchema,
     ProductUpdateSchema,
 )
+from app.api.models import Cart, CartItem
 
 
 @pytest.fixture
@@ -219,3 +223,84 @@ def test_create_product_part_success(test_db: Session) -> None:
     created_part: ProductPart = create_product_part(test_db, part)
 
     assert created_part.name == "Test Product Part"
+
+
+# Cart tests
+
+
+def test_create_cart_with_items_success(
+    test_db: Session,
+    sample_data: dict[str, Any],
+) -> None:
+    product: Product = sample_data["product"]
+    cart_data = CartCreateSchema(
+        purchased=False,
+        total_price=200.0,
+        items=[
+            CartItemCreateSchema(
+                product_id=product.id,
+                selected_parts="1, 2",
+                total_price=100.0,
+            ),
+            CartItemCreateSchema(
+                product_id=product.id,
+                selected_parts="2, 5",
+                total_price=100.0,
+            ),
+        ],
+    )
+
+    created_cart: Cart = create_cart_with_items(test_db, cart_data)
+
+    assert created_cart.id is not None
+    assert created_cart.total_price == 200.0
+    assert len(created_cart.items) == 2
+
+    cart_item_1: CartItem = created_cart.items[0]
+    cart_item_2: CartItem = created_cart.items[1]
+
+    assert cart_item_1.product_id == product.id
+    assert cart_item_1.selected_parts == "1, 2"
+    assert cart_item_1.total_price == 100.0
+
+    assert cart_item_2.product_id == product.id
+    assert cart_item_2.selected_parts == "2, 5"
+    assert cart_item_2.total_price == 100.0
+
+
+def test_create_cart_with_empty_items(test_db: Session) -> None:
+    cart_data = CartCreateSchema(
+        purchased=False,
+        total_price=0.0,
+        items=[],
+    )
+
+    created_cart: Cart = create_cart_with_items(test_db, cart_data)
+
+    assert created_cart.id is not None
+    assert created_cart.total_price == 0.0
+    assert len(created_cart.items) == 0
+
+
+def test_create_cart_with_partial_item_data(
+    test_db: Session, sample_data: dict[str, Any]
+) -> None:
+    product: Product = sample_data["product"]
+    cart_data = CartCreateSchema(
+        purchased=False,
+        total_price=100.0,
+        items=[
+            CartItemCreateSchema(
+                product_id=product.id,
+                total_price=100.0,  # Missing selected_parts
+            ),
+        ],
+    )
+
+    created_cart: Cart = create_cart_with_items(test_db, cart_data)
+
+    assert created_cart.id is not None
+    assert len(created_cart.items) == 1
+    assert created_cart.items[0].product_id == product.id
+    assert created_cart.items[0].total_price == 100.0
+    assert created_cart.items[0].selected_parts is None

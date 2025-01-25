@@ -8,11 +8,14 @@ from sqlmodel.sql._expression_select_cls import SelectOfScalar
 
 from app.database import Session
 from app.api.models import (
+    Cart,
+    CartItem,
     Product,
     ProductPart,
     PartVariant,
 )
 from app.api.schemas import (
+    CartCreateSchema,
     PartVariantCreateSchema,
     PartVariantUpdateSchema,
     ProductCreateSchema,
@@ -391,3 +394,46 @@ def delete_part_variant(
     session.commit()
 
     return True
+
+
+# Cart CRUD
+
+
+def create_cart_with_items(
+    session: Session,
+    cart_data: CartCreateSchema,
+) -> Cart:
+    """
+    Create a new cart and add multiple items to it in a single transaction.
+
+    Args:
+        session (Session): The database session.
+        cart_data (CartCreateSchema): A cart object with a list of
+            cart items, where each dictionary contains product ID,
+            selected parts, and total price.
+
+    Returns:
+        Cart: The newly created cart with its associated items.
+    """
+    cart = Cart(
+        purchased=False,
+        total_price=cart_data.total_price,
+    )
+    session.add(cart)
+
+    cart_items: List[CartItem] = [
+        CartItem(
+            cart_id=cart.id,
+            product_id=item.product_id,
+            selected_parts=item.selected_parts,
+            total_price=item.total_price,
+        )
+        for item in cart_data.items
+    ]
+
+    session.add_all(cart_items)
+
+    session.commit()
+    session.refresh(cart)
+
+    return cart

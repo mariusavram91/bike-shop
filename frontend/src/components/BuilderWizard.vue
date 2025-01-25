@@ -134,6 +134,8 @@ export default {
       if (step < this.productParts.length + 1) {
         this.currentStep++
       }
+
+      this.$emit('selected-parts', this.selectedChoices)
     },
 
     /**
@@ -148,6 +150,8 @@ export default {
           this.currentStep--
         }
       }
+
+      this.$emit('selected-parts', this.selectedChoices)
     },
 
     /**
@@ -158,6 +162,7 @@ export default {
       this.currentStep = 1
       this.choicesHistory = []
       this.calculateTotalPrice()
+      this.$emit('selected-parts', this.selectedChoices)
     },
 
     /**
