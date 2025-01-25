@@ -163,3 +163,62 @@ def test_delete_non_existent_product(test_client: TestClient) -> None:
 
     assert response.status_code == 404
     assert response.json() == {"detail": "Product not found"}
+
+
+def test_get_all_products_pagination(
+    test_db: Session,
+    test_client: TestClient,
+) -> None:
+    for i in range(1, 21):
+        create_product(
+            test_db,
+            ProductCreateSchema(
+                name=f"Test Product {i}",
+                description=f"A sample product {i}",
+                category="Bicycle",
+                base_price=100.0 + i,
+                is_custom=False,
+            ),
+        )
+
+    # Test pagination for page 1 with page_size=5
+    response_page_1: Response = test_client.get(
+        "/api/v1/products/?page=1&page_size=5",
+    )
+    assert response_page_1.status_code == 200
+
+    products_page_1 = response_page_1.json()
+    assert len(products_page_1) == 5
+    assert products_page_1[0]["name"] == "Test Product 1"
+    assert products_page_1[4]["name"] == "Test Product 5"
+
+    # Test pagination for page 2 with page_size=5
+    response_page_2: Response = test_client.get(
+        "/api/v1/products/?page=2&page_size=5",
+    )
+    assert response_page_2.status_code == 200
+
+    products_page_2 = response_page_2.json()
+    assert len(products_page_2) == 5
+    assert products_page_2[0]["name"] == "Test Product 6"
+    assert products_page_2[4]["name"] == "Test Product 10"
+
+    # Test pagination for a larger page_size
+    response_large_page_size: Response = test_client.get(
+        "/api/v1/products/?page=1&page_size=10"
+    )
+    assert response_large_page_size.status_code == 200
+
+    products_large_page_size = response_large_page_size.json()
+    assert len(products_large_page_size) == 10
+    assert products_large_page_size[0]["name"] == "Test Product 1"
+    assert products_large_page_size[9]["name"] == "Test Product 10"
+
+    # Test pagination for a page beyond available products
+    response_empty_page: Response = test_client.get(
+        "/api/v1/products/?page=5&page_size=5"
+    )
+    assert response_empty_page.status_code == 200
+
+    products_empty_page = response_empty_page.json()
+    assert len(products_empty_page) == 0

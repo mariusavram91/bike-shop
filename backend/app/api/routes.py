@@ -3,7 +3,7 @@
 from typing import List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, Query, status, Depends
 from sqlmodel import Session
 
 from app.database import get_session
@@ -115,6 +115,8 @@ def get_product_route(
 @router.get("/products", response_model=List[ProductSchema])
 def get_all_products__route(
     session: Session = Depends(get_session),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(10, le=100),
 ) -> List[Product]:
     """
     This route retrieves all products from the database. The list of
@@ -122,11 +124,13 @@ def get_all_products__route(
 
     Args:
         session (Session): The database session for executing queries.
+        page (int): The page number used for the offset.
+        page_size (int): The number of rows to limit the query.
 
     Returns:
         List[Product]: A list of all products.
     """
-    return get_all_products(session=session)
+    return get_all_products(session=session, page=page, page_size=page_size)
 
 
 @router.put("/products/{product_id}", response_model=ProductSchema)

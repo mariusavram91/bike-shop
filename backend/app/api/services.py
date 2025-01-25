@@ -66,17 +66,31 @@ def get_product_by_id(
 
 def get_all_products(
     session: Session,
+    page: int = 1,
+    page_size: int = 10,
 ) -> List[Product]:
     """
     Retrieve all products from the database.
 
     Args:
         session (Session): The database session.
+        page (int): The page number used for the offset.
+        page_size (int): The number of rows to limit the query.
 
     Returns:
         List[Product]: A list of all products in the database.
     """
-    statement: SelectOfScalar[Product] = select(Product)
+    offset: int = (page - 1) * page_size
+
+    statement: SelectOfScalar[Product] = (
+        select(Product)
+        .limit(
+            page_size,
+        )
+        .offset(
+            offset,
+        )
+    )
     products: Sequence[Product] = session.exec(statement).all()
 
     return list(products)
