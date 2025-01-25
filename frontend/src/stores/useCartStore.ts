@@ -13,7 +13,7 @@ export const useCartStore = defineStore('cartStore', {
     /**
      * Adds an item to the cart. If the cart doesn't exist, it initialises a new cart.
      * Recalculates the total price of the cart and updates local storage.
-     * 
+     *
      * @param item - The item to add to the cart, which is a partial CartItem.
      */
     async addToCart(item: Partial<CartItem>) {
@@ -27,10 +27,14 @@ export const useCartStore = defineStore('cartStore', {
 
       this.cart.items?.push(item) // This will add duplicates at the moment
 
-      this.cart.total_price = this.cart.items?.reduce(
-        (total: number, i: CartItem) => total + (i.total_price ? i.total_price : 0),
-        0
-      )
+      if (this.cart.items) {
+        this.cart.total_price = this.cart.items.reduce((total: number, item: Partial<CartItem>) => {
+          if (item.total_price !== undefined) {
+            return total + item.total_price
+          }
+          return total
+        }, 0)
+      }
 
       this.saveCartToLocalStorage()
 

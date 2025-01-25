@@ -42,3 +42,10 @@ pytest
 ```
 
 Use `pytest tests/api/test_utils.py` to run a specific suite of tests or `pytest tests/api/test_services.py::test_create_product_success`.
+
+You can run flake and black for code formatting manually, or set your editor reformat on Save.
+
+```sh
+black .
+flake8 . --exclude venv,.venv
+```

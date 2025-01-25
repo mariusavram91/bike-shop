@@ -2,14 +2,13 @@
 
 import axios, { type AxiosInstance } from 'axios'
 
-
 /**
  * ApiClient is a wrapper around Axios to simplify HTTP requests.
- * It provides methods for common HTTP actions (GET, POST, PUT, DELETE) 
+ * It provides methods for common HTTP actions (GET, POST, PUT, DELETE)
  * with predefined configurations like base URL and headers.
  */
 class ApiClient {
-  private axiosInstance: AxiosInstance;
+  private axiosInstance: AxiosInstance
 
   /**
    * Creates an instance of ApiClient with a specified base URL.
@@ -26,23 +25,23 @@ class ApiClient {
   }
 
   async get<T>(url: string, params?: Record<string, unknown>): Promise<T> {
-    const response = await this.axiosInstance.get(url, { params });
-    return response.data;
+    const response = await this.axiosInstance.get(url, { params })
+    return response.data
   }
 
   async post<T>(url: string, data?: unknown): Promise<T> {
-    const response = await this.axiosInstance.post(url, data);
-    return response.data;
+    const response = await this.axiosInstance.post(url, data)
+    return response.data
   }
 
   async put<T>(url: string, data?: unknown): Promise<T> {
-    const response = await this.axiosInstance.put(url, data);
-    return response.data;
+    const response = await this.axiosInstance.put(url, data)
+    return response.data
   }
 
   async delete<T>(url: string): Promise<T> {
-    const response = await this.axiosInstance.delete(url);
-    return response.data;
+    const response = await this.axiosInstance.delete(url)
+    return response.data
   }
 }
 

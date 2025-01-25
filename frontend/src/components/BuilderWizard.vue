@@ -97,7 +97,7 @@ import type { Product, ProductPart } from '@/services/productsServices'
 export default {
   props: {
     product: {
-      type: Object as () => Product,
+      type: Object as () => Partial<Product>,
       required: true,
     },
     productParts: {
@@ -175,9 +175,11 @@ export default {
         (sum, choice) => sum + choice.price,
         0,
       )
-      this.totalPrice = this.product.base_price + additionalPrice
+      if (this.product.base_price) {
+        this.totalPrice = this.product.base_price + additionalPrice
 
-      this.$emit('total-price-calculated', this.totalPrice)
+        this.$emit('total-price-calculated', this.totalPrice)
+      }
     },
   },
 }

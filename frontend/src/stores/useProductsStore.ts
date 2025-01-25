@@ -30,7 +30,7 @@ export const useProductsStore = defineStore('productsStore', {
      * @returns {Product | undefined} The matching product, or `undefined` if not found.
      */
     getProductById(id: string) {
-        return this.products.find((product: Product) => product.id === id)
+      return this.products.find((product: Product) => product.id === id)
     },
 
     /**

@@ -388,3 +388,58 @@ If the part doesn't exist, it will create a new entry in the product_parts table
 Marcus can set the default prices of pricing for combinations of choices while adding the product. Alternatively, Marcus can use the inventory page once again to filter for the specific part in the list and click on Edit, which will redirect him to a page where he can edit the pricing. Ideally he could be able to do it directly in the inventory by expanding the part in the list and including the editable fields in there.
 
 There will be an update query for the price field to the database in the part_variants table or entry(ies) will be added/modified in the custom_prices table.
+
+## Development setup
+
+To run the app locally for development make sure to install docker and docker compose, then:
+
+``` sh
+cd infra
+docker compose up --build
+```
+
+Docker and Docker compose versions used:
+
+- Docker version 27.3.1
+- Docker Compose version v2.19.1
+
+You can access the frontend at [http://localhost:5173](http://localhost:5173)
+
+Backend/API URL running on uvicorn: [http://localhost:8000](http://localhost:8000)
+
+API docs (Swagger) here: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+The docker compose file for development includes a PostgreSQL service. You can check the docker-compose.yml [here](infra/docker-compose.yml).
+
+### Seed
+
+You can seed the database with:
+
+``` sh
+docker exec bikeshop_be_fastapi  python db_seed.py
+```
+
+### Running Tests
+
+Run the backend tests with (Pytest):
+
+``` sh
+docker exec bikeshop_be_fastapi pytest
+```
+
+Run the frontend tests with:
+
+``` sh
+docker exec bikeshop_fe_vue npm run test
+```
+
+Alternatively, check `backend/README.md` or `frontend/README.md` on how to do it without Docker.
+
+## Check out the live version
+
+I have used the free options on render.com to deploy this app. There are 3 services: a postgres db, a frontend service, and a backend service. Environment variable were used for configuration. As it's for free, render shuts down servers after 15 minutes (this happens with the API service), so it might take some time until the services start on the first request. It could be more than a minute.
+
+Live frontend: [https://bike-shop-fe.onrender.com](https://bike-shop-fe.onrender.com)
+Live API: [https://bike-shop-api-vzjl.onrender.com](https://bike-shop-api-vzjl.onrender.com) (Swagger is turned off)
+
+You can check if the API is live by going to [https://bike-shop-api-vzjl.onrender.com/api/v1/healthcheck](https://bike-shop-api-vzjl.onrender.com/api/v1/healthcheck).

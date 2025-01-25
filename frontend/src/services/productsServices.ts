@@ -7,16 +7,16 @@ import apiClient from '@/services/apiClient'
  * Products are the main items sold in the application (i.e., bicycles).
  */
 export interface Product {
-    id: string
-    name: string
-    description: string
-    category: string
-    base_price: number
-    is_custom: boolean
-    is_available: boolean
-    stock_quantity: number
+  id: string
+  name: string
+  description: string
+  category: string
+  base_price: number
+  is_custom: boolean
+  is_available: boolean
+  stock_quantity: number
 
-    parts: ProductPart[]
+  parts: ProductPart[]
 }
 
 /**
@@ -24,11 +24,11 @@ export interface Product {
  * Parts are customisable components of a product (e.g., Frame, Wheels).
  */
 export interface ProductPart {
-    id: string
-    name: string
-    product_id: string
+  id: string
+  name: string
+  product_id: string
 
-    variants: PartVariant[]
+  variants: PartVariant[]
 }
 
 /**
@@ -36,12 +36,12 @@ export interface ProductPart {
  * Variants are specific options for a part (e.g., Full-suspension for Frame).
  */
 export interface PartVariant {
-    id: string
-    part_id: string
-    name: string
-    price: number
-    is_available: boolean
-    stock_quantity: number
+  id: string
+  part_id: string
+  name: string
+  price: number
+  is_available: boolean
+  stock_quantity: number
 }
 
 /**

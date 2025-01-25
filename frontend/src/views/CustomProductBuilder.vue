@@ -37,7 +37,7 @@ import { onMounted, ref } from 'vue'
 import BuilderWizard from '@/components/BuilderWizard.vue'
 import { useProductsStore } from '@/stores/useProductsStore'
 import { useCartStore } from '@/stores/useCartStore'
-import { PartVariant } from '@/services/productsServices'
+import { type PartVariant, type Product } from '@/services/productsServices'
 
 export default {
   components: {
@@ -53,15 +53,24 @@ export default {
     const productsStore = useProductsStore()
     const cartStore = useCartStore()
 
+    const current_product = ref<Partial<Product>>({
+      id: '',
+      name: '',
+      parts: [],
+    })
+
     const total_price = ref<number>(0)
     const selected_parts = ref<string>('')
 
     onMounted(async () => {
       await productsStore.getProducts()
       cartStore.loadCartFromLocalStorage()
-    })
 
-    const current_product = productsStore.getProductById(props.productId)
+      const product = productsStore.getProductById(props.productId)
+      if (product) {
+        current_product.value = product
+      }
+    })
 
     return { current_product, total_price, cartStore, selected_parts }
   },
