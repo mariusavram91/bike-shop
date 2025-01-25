@@ -145,10 +145,10 @@ Backend:
 
 Frontend:
 
-- [ ] Create the UI views for Product List And Bike Builder wizard in VueJS with Tailwind.
-- [ ] Implement state management with Pinia to track selected variants and current price.
-- [ ] Update pricing dynamically based on customer's selection.
-- [ ] Add tests
+- [x] Create the UI views for Product List And Bike Builder wizard in VueJS with Tailwind.
+- [x] Implement state management with Pinia to track selected variants and current price.
+- [x] Update pricing dynamically based on customer's selection.
+- [x] Add tests
 
 Logic:
 

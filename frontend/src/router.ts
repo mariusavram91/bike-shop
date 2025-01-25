@@ -7,12 +7,19 @@ import {
 } from 'vue-router'
 
 import ProductsView from '@/views/ProductsView.vue'
+import CustomProductBuilder from '@/views/CustomProductBuilder.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
     name: 'Home',
     component: ProductsView,
+  },
+  {
+    path: '/builder/:productId',
+    name: 'ProductBuilder',
+    component: CustomProductBuilder,
+    props: true,
   },
 ]
 

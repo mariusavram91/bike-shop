@@ -51,10 +51,13 @@ export default {
 
     /**
      * Handles the `go-to-builder` event emitted by the ProductCard component.
+     *
+     * Redirect to the custom product builder page.
+     *
      * @param {Product} product - The product for which customisation is initiated.
      */
     handleGoToBuilder(product: Product) {
-      console.log({ 'Redirecting to Builder page for product': product })
+      this.router.push({ name: 'ProductBuilder', params: { productId: product.id } })
     },
   },
 }
