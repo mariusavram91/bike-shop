@@ -140,7 +140,7 @@ Backend:
 
 - [x] Define a SQLModel schema for products, parts, and prices. Should differenciate if the product is customisable or not.
 - [x] Implement APIs for retrieving products and their parts/variants.
-- [ ] Implement pagination for products.
+- [x] Implement pagination for products.
 - [x] Add tests and allow CORS for frontend.
 
 Frontend:
@@ -152,7 +152,7 @@ Frontend:
 
 Logic:
 
-- [ ] Handle price calculation logic, excluding dependencies for now.
+- [x] Handle price calculation logic, excluding dependencies for now.
 
 ### Handle items not in stock
 
