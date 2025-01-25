@@ -1,0 +1,68 @@
+services:
+  db:
+    image: postgres:15
+    container_name: bikeshop_db_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: mydatabase
+    ports:
+      - "5432:5432" 
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - bikeshop_network
+  
+  backend:
+    build:
+      context: ../backend
+    container_name: bikeshop_be_fastapi
+    volumes:
+      - ../backend:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://postgres:postgres@db:5432/mydatabase
+    networks:
+      - bikeshop_network
+    command:  >
+      /bin/sh -c "alembic upgrade head && python asgi.py"
+
+  test_backend:
+    build:
+      context: ../backend
+    volumes:
+      - ../backend:/app
+    command: pytest
+
+  frontend:
+    build:
+      context: ../frontend
+    container_name: bikeshop_fe_vue
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000/api/v1
+    networks:
+      - bikeshop_network
+    volumes:
+      - ../frontend:/app
+    command: npm run dev
+  
+  test_frontend:
+    build:
+      context: ../frontend
+    volumes:
+      - ../frontend:/app
+    command: npm run test
+
+networks:
+  bikeshop_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
