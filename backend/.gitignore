@@ -1,0 +1,80 @@
+# Python Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# MyPy type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pytest cache and logs
+.pytest_cache/
+.tox/
+.cache/
+
+# VS Code settings
+.vscode/
+
+# Docker-related
+# Avoid committing docker-compose.override.yml to not push development-specific configurations
+docker-compose.override.yml
+docker-compose.dev.yml
+docker-compose.local.yml
+
+# Ignore Docker build folders and containers
+**/data/  # If you're storing data volumes for development
+.docker/
+
+# Logs and other runtime artifacts
+logs/
+*.log
+*.out
+*.err
+
+# Environment variables
+.env
+.env.*.local
+
+# PostgreSQL files (local dev storage)
+pg_data/
+pg_dump.sql
+
+# Pytest results
+htmlcov/
+.coverage
+.coverage.*
+.cache/
+nosetests.xml
+coverage.xml
+*.cover
+
+# Staticfiles (if any)
+staticfiles/
+media/
+
+# macOS system files
+.DS_Store
+
+# Other system-specific files
+Thumbs.db
+
+# Editor/IDE settings
+.idea/
+.sublime-project
+.sublime-workspace
+*.swp
+*.swo
+
+db.db
+database.db
+test_db.db
+db_test.db
+
+# Local uploads
+local/
