@@ -1,7 +1,7 @@
 # db_seed.py
 
 from sqlalchemy import delete
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 from app.database import engine
 
