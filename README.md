@@ -37,6 +37,7 @@ Would the website require branding guidelines or what preferences does Marcus ha
 What happens to out of stock products/parts, should they still be shown but marked as out of stock, or be completely hidden. Should the number of items left in stock be shown next to the product/part? I choose to show the product, disabled and grayed out with a "Out of stock" text next to it.
 
 Are there any existing assets I should use? It would be necessary to clarify if there are images for each variant/part and product separately. I assume images would be required somehow for this store and Marcus should be able to upload these assets through the admin interface or import them in bulk somehow. Initially I would create a file service to handle uploading images, leaving the option to use an AWS S3 bucket in the future and serve them through a CDN to decrease loading times, but initially just using the local storage (which is also cost effective for starters). Could still use Cloudflare as a CDN provider, would optimise the images, implement lazy loading in the frontend. Would probably help to generate previews or thumbnails in the backend and serve those to the frontend.
+
 In this case I would assume all images would be public, so there would not be any view restrictions. For now, I have just added some mounted bikes images in the frontend directly to show a more realistic UI, given that I consider this out of scope. This is not however, how I would implement it in real-life, as it would require a developer to make updates and would end up being a nightmare to maintain. Would not scale.
 
 ### Inventory and stock
@@ -54,6 +55,7 @@ I came back and back again to the drawing board trying to figure out how to hand
 
 - One option, temporarily, the simplest one would be to just hard-code the rules in the backend, would be pretty straightforward using a switch case directly in the application code or having a rules json file with all the conditions and price adjustments that can be used to parse and apply the rules. But where would the fun be in that? Besides... this will definitely require constant adjustments in the code by a developer and could end up messy, and would be very difficult to scale and maintain.
 - Another option would be having a detailed rules table(s) instead of the json file, with the conditions, type of conditions, priorities, price adjustment, etc.. So these rules would be stored dynamically in the database and just like before they would be evaluated dynamically in the backend. This would be very flexible, Marcus could set up these rules, their priorities, etc. through the admin interface. It would definitely be more scalable than our previous options. Rules can be removed, added, or modified dynamically without the intervention of a developer. These rules could also be added for future product if these are customisable as well. Performance could be improved with some caching. But it might end up being to complex for Marcus and non-technical staff, they might need training to understand the dynamics of the rules. It also increases the development estimation, and due to possibly complex conditions might also increase the maintainability of the queries.
+
 - I decided to simplify this a bit by having two tables, one for the dependencies of the parts and their restrictions. And another one for the price adjustments. For now I will not take into account priorities of these conditions. This still offers the flexibility of the previous option as well as scalability, as all this can be handled by Marcus and his staff, but allows for an easier admin interface. It will, of course, not be able to handle very complex conditions and might end up requiring more initial work from the admins to set it up. This could of course be simplified by maybe introducing a an import/export option to make updates in bulk and speed up the process. But this would increase the development time and complexity,
 so would not be implemented in this iteration. It would require parsing and validating the imports, the import functionality would have to be very robust and reliable.
 
@@ -70,6 +72,7 @@ Here’s a breakdown of the technologies I have used and why I chose them. One t
 
 I will not be implementing caching in this iteration, but I would go for Redis, because I more familiar with it. Will also not implement Cache-Control headers in the API.
 Will also not implement async, although I would definitely do it in a real life situation to be able to handle multiple requests concurrently. FastAPI is built on Starlette (an asynchronous web framework), so it can handle async easily. For database I would proabably use something like asyncpg, although I have found the handling of async in SQLALchemy to be a bit difficult to work with. As it doesn't make sense to just implement async for the routes without async db, because having syncrhonous database calls will reduce the benefits of async.
+
 Will not implement background jobs, but this would be necessary for stuff like the emails, inventory updates, depending on how it's handled I would say prices calculations. Maybe I would use something like Celery, but I am not super familiar with it.
 In the frontend, beside the lazy-loading for images, would be minification, Vite automatically minifies files during build. Pinia will help to reduce API calls.
 Although not within the scope of this implementation, I could see using Websockets for real-time updates for stock changes or calculating the dynamic pricing.
@@ -305,7 +308,7 @@ Frontend:
 
 ---
 
-> Data model: What data model would best support this application? Can you describe it? Include table specifications (or documents if it's a non-relational database) with fields, their associations, and the meaning of each entity.
+> **Data model**: What data model would best support this application? Can you describe it? Include table specifications (or documents if it's a non-relational database) with fields, their associations, and the meaning of each entity.
 
 See choice for a relational database in the `Breakdown of Tech Stack` section in this document.
 
@@ -316,14 +319,16 @@ My proposed data model includes several tables, for products, parts, variants, r
 ![Database diagram](db-diagram.png)
 *Fig. 2 Bike Shop Database diagram*
 
+To simplify the model for this prototype, restrictions should be saved as comma separated list of uuids. If kept like that, validation and serialisation would be needed as an improvement.
+
 You can also check out the database schema written in DBML [here](database.dbml) in more detail (it includes notes for the associations and entities), which was used to generate the diagram on [dbdiagram.io](https://dbdiagram.io/).
 
-> Main user actions: Explain the main actions users would take on this e-commerce website in detail.
+> **Main user actions**: Explain the main actions users would take on this e-commerce website in detail.
 
-- Product Browsing: Users can view available products as well as individual parts (assuming they can buy individual parts as well). On this page, users should be able to search for products, filter by categories, order by price, etc. The customers would see cards with the items. The items that are not customisable they can directly add to the cart. Those which are customisable they will see a "Customise" Button which takes them to the Builder page.
-- Customization/Builder: On this page, users select from available options for each part following a wizard-like feature. An accordion-like view, where you have to select the first option before moving on to the next sections. The available choices based on dependencies and stock status will be updated dynamically. They would see individual prices (prices update dynamically as well depending on dependencies) of the parts as well as the base price on one side. While on the other side, they will have a preview of the custom bike and thy see the total price. There will be a button to add it to the cart. They could also be able to undo their last choice or reset the customisation and start all over.
-- Add to Cart: When the user is satisfied, they can add the custom product to their cart, which stores the selected options and the final price.
-- Cart Summary: The user can leave the cart view at any time and navigate back to it by clicking the Cart icon. Here they can view the (possibly multiple) products and list of parts with their individual prices if their are custom. They can see the total price. And they can purchase their cart by adding their email, shipping details and can proceed to Payment by clicking a "Pay" Button.
+- **Product Browsing**: Users can view available products as well as individual parts (assuming they can buy individual parts as well). On this page, users should be able to search for products, filter by categories, order by price, etc. The customers would see cards with the items. The items that are not customisable they can directly add to the cart. Those which are customisable they will see a "Customise" Button which takes them to the Builder page.
+- **Customization/Builder**: On this page, users select from available options for each part following a wizard-like feature. An accordion-like view, where you have to select the first option before moving on to the next sections. The available choices based on dependencies and stock status will be updated dynamically. They would see individual prices (prices update dynamically as well depending on dependencies) of the parts as well as the base price on one side. While on the other side, they will have a preview of the custom bike and thy see the total price. There will be a button to add it to the cart. They could also be able to undo their last choice or reset the customisation and start all over.
+- **Add to Cart**: When the user is satisfied, they can add the custom product to their cart, which stores the selected options and the final price.
+- **Cart Summary**: The user can leave the cart view at any time and navigate back to it by clicking the Cart icon. Here they can view the (possibly multiple) products and list of parts with their individual prices if their are custom. They can see the total price. And they can purchase their cart by adding their email, shipping details and can proceed to Payment by clicking a "Pay" Button.
 
 See the following figures for a minimalistic visual representation of the main views/pages:
 
@@ -334,7 +339,7 @@ See the following figures for a minimalistic visual representation of the main v
 ![Checkout Page](checkout.png)
 *Fig. 5 Checkout Page*
 
-> Product page: This is a read operation, performed when displaying a product page for the customer to purchase. How would you present this UI? How would you calculate which options are available? How would you calculate the price depending on the customer's selections?
+> **Product page**: This is a read operation, performed when displaying a product page for the customer to purchase. How would you present this UI? How would you calculate which options are available? How would you calculate the price depending on the customer's selections?
 
 If it's not a customisable product, the product would be displayed to the user with the details or description, the price.
 
@@ -344,7 +349,7 @@ Based on the interactive selection of variants, I would use the restrictions dat
 
 Similarly, for calculating the price, would add the prices of the selected options on top of the base price, and check the custom pricing table to adjust the pricing for specific combinations.
 
-> Add to cart action: Once the customer makes their selection, there should be an "add to cart" button. What happens when the customer clicks this button? What is persisted in the database?
+> **Add to cart action**: Once the customer makes their selection, there should be an "add to cart" button. What happens when the customer clicks this button? What is persisted in the database?
 
 When the user adds a customised product to the cart, this data of the cart items will be persisted to localStorage first then a POST request will be sent to the Backend to add a cart in the carts table and the items belonging to that cart in the cart_items table. This will included a list of the selected parts, and the total price.
 
@@ -352,14 +357,14 @@ Why saving to localStorage? It's not sensitive data. Can read first from there b
 
 Why save to the database anyway? This is saved for future reference for Marcus, he should be able to get a notification of the new cart to prepare and ship the order. It can be used in future sales reports or an Analytics page as well.
 
-> Administrative workflows: Describe the main workflows for Marcus to manage his store.
+> **Administrative workflows**: Describe the main workflows for Marcus to manage his store.
 
 The admin interface would require authentication, and it could handle multiple users of course, as Marcus could have multiple different staff members under our previous assumption.
 
-- Product Management Workflows: Marcus would need be able to add new products, such as bikes (in the future surfboards, skis, other sport items). As he offers customisation for products, Marcus can define parts and variants of parts optionally. Marcus should be able to set custom pricing based on customer choices.
-- Inventory Management Workflows: Marcus can update/edit or delete existing products or parts and variants. Marcus can check the stock levels to know which new items to order for the shop, he can temporarily mark something as out of stock manually if needed, and could update the amount of items he has in the store. He can track the stock for each product or individual variant.
-- Order Management Workflows: Marcus should get notifications of new orders and should be able to access the list of incoming orders and their details. Marcus should be able to confirm payment and prepare the order for shipping. He should be able to update the status of the order when completed or shipped and the customer should receive an email with the shipping/delivery details. Marcus could possibly be able to handle returns or refunds through the admin interface as well.
-- Analytics: Marcus would probably want to generate sales reports for specific time periods and check which products perform the best or the worst.
+- **Product Management Workflows**: Marcus would need be able to add new products, such as bikes (in the future surfboards, skis, other sport items). As he offers customisation for products, Marcus can define parts and variants of parts optionally. Marcus should be able to set custom pricing based on customer choices.
+- **Inventory Management Workflows**: Marcus can update/edit or delete existing products or parts and variants. Marcus can check the stock levels to know which new items to order for the shop, he can temporarily mark something as out of stock manually if needed, and could update the amount of items he has in the store. He can track the stock for each product or individual variant.
+- **Order Management Workflows**: Marcus should get notifications of new orders and should be able to access the list of incoming orders and their details. Marcus should be able to confirm payment and prepare the order for shipping. He should be able to update the status of the order when completed or shipped and the customer should receive an email with the shipping/delivery details. Marcus could possibly be able to handle returns or refunds through the admin interface as well.
+- **Analytics**: Marcus would probably want to generate sales reports for specific time periods and check which products perform the best or the worst.
 
 See the following figures for a minimalistic visual representation of the main views/pages:
 
@@ -368,26 +373,69 @@ See the following figures for a minimalistic visual representation of the main v
 ![Edit Inventory Page](edit-products.png)
 *Fig. 7 Edit Inventory Page*
 
+To achieve this, frontend would:
+
+`GET /api/v1/products` to get products (with pagination if implemented), a list of product objects and its children: parts < variants (variant_dependencies & variant's custom_prices) would be returned, which would be used to render the inventory. Data would be used for updates or deletion (with `PUT`, `DELETE`).
+
 I consider Order Management and Analytics out of scope for this iteration.
 
-> New product creation: What information is required to create a new product? How does the database change?
+> **New product creation**: What information is required to create a new product? How does the database change?
 
 Product details that are required: name, description, base price, category, and if it's custom or not.
 If the product is customisable, then associated parts and their variants are required too, for users to be able to actually build their bikes.
 
-Entries are added to products, product_parts, and part_variants tables. In that order, so the ids can be used as foreign keys to establish the relationship between all the entities.
+To create a new product, all that data will be sent to the API in a `POST /api/v1/products` (with the auth token if authentication would be implemented), or individual requests like `POST /api/v1/product-parts` or `POST /api/v1/part-variants`, etc.
 
-> Adding a new part choice: How can Marcus introduce a new rim color? Describe the UI and how the database changes.
+The backend would validate, serialised, and entries are added to products, product_parts, and part_variants tables. In that order, so the ids can be used as foreign keys to establish the relationship between all the entities. Then the backend would send a 201 Created status with the created data to the frontend (or any validation errors with 422 status or any other appropiate errors).
 
-Marcus could go to the inventory page and add a new variant or part and its variants by clicking on a "Add <>" Button. A simpler view of the New Product page could be displayed for adding the new choice. It would have the option to add multiple new choices for the same part on the page, and establish any new restrictions as well as new custom prices.
+> **Adding a new part choice**: How can Marcus introduce a new rim color? Describe the UI and how the database changes.
+
+Marcus could go to the inventory page and add a new variant or part and its variants by clicking on a "Add <*>" Button. A simpler view of the New Product page could be displayed for adding the new choice. It would have the option to add multiple new choices for the same part on the page, and establish any new restrictions as well as new custom prices.
 
 If the part doesn't exist, it will create a new entry in the product_parts table and use that id, otherwise it could use the existing id of the part to create an entry in the parts_variants table, followed optionally by adding new entries in the part_variants_dependencies and custom_prices tables, for new dependencies or custom prices respectively.
 
-> Setting prices: How can Marcus change the price of a specific part or specify particular pricing for combinations of choices? How does the UI and database handle this?
+> **Setting prices**: How can Marcus change the price of a specific part or specify particular pricing for combinations of choices? How does the UI and database handle this?
 
 Marcus can set the default prices of pricing for combinations of choices while adding the product. Alternatively, Marcus can use the inventory page once again to filter for the specific part in the list and click on Edit, which will redirect him to a page where he can edit the pricing. Ideally he could be able to do it directly in the inventory by expanding the part in the list and including the editable fields in there.
 
 There will be an update query for the price field to the database in the part_variants table or entry(ies) will be added/modified in the custom_prices table.
+
+---
+
+## What's next? Improvements?
+
+### Backend
+
+Assuming it would be async already.
+
+- Prepare uvicorn for production. Would use gunicorn with a bunch of uvicorn workers.
+- Add indexes in the database for fields that are used often in queries, to make queries more efficient.
+- Add queing, caching, better error handling, logging, monitoring.
+- User Pydantic validation for fields in the schemas.
+- Improve pagination, add total number of pages. And add pagination for parts as well.
+- Obviously not receive the price data for the cart from the Frontend, but calculate and validate in the backend.
+- Improve filtering too. Implement search.
+- Implement image/file handling.
+- Implement authentication for Marcus and his staff, and protect the post, put, and delete routes with auth.
+- Improve validation/serialisation for dependencies restrictions (comma separated ids of other variants). Validate before adding to the cart that no restrictions are broken, the the ids exist, etc.
+- Increase test coverage.
+
+### Frontend
+
+- Add admin frontend for adding new products, with parts, variants, custom pricing and restrictions.
+- Add admin frontend for managaging inventory (i.e. update products/parts/variants as well as custom pricing dependencies and restrictions).
+- Add cart summary view and purchase (clear cart).
+- Add seach and filtering for products.
+- Add authentication views.
+- Use pagination, only fetch a limited amount of products from the API and fetch more on scrolling or using buttons for pagination.
+- Using loading placeholders for products to enhance UX.
+- Implement payments and shipping notices (for users and Marcus), emails, etc.
+- Consider saving the BuilderWizzard choices in the store for future incomplete visits.
+- Increase test coverage and add e2e testing.
+- SEO optimisation.
+- Images lazy-loading.
+
+---
 
 ## Development setup
 

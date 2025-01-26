@@ -1,7 +1,7 @@
 """Generate tables for Products, Parts, Variants
 
 Revision ID: 8880b244afb7
-Revises: 
+Revises:
 Create Date: 2025-01-25 15:02:12.744382
 
 """

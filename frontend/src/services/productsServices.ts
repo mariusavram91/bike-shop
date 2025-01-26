@@ -57,9 +57,9 @@ export interface PartVariant {
  * replace the price.
  */
 export interface CustomPrice {
-    variant_id: string
-    dependent_variant_id: string
-    custom_price: number
+  variant_id: string
+  dependent_variant_id: string
+  custom_price: number
 }
 
 /**
@@ -68,8 +68,8 @@ export interface CustomPrice {
  * All these ids are incompatible with variant_id and vice versa.
  */
 export interface VariantDependency {
-    variant_id: string
-    restrictions: string
+  variant_id: string
+  restrictions: string
 }
 
 /**

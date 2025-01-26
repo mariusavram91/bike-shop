@@ -180,7 +180,7 @@ describe('initialiseCustomPrices', () => {
       props: { product: mockProduct, productParts: mockProductParts },
     })
 
-    wrapper.vm.initialiseCustomPrices();
+    wrapper.vm.initialiseCustomPrices()
 
     expect(wrapper.vm.customPrices).toEqual({
       '2-2': {
@@ -188,8 +188,8 @@ describe('initialiseCustomPrices', () => {
         dependentVariantId: '1-2',
         dependentPartId: '1',
       },
-    });
-  });
+    })
+  })
 })
 
 describe('calculateTotalPrice', () => {
@@ -217,7 +217,6 @@ describe('calculateTotalPrice', () => {
     expect(wrapper.vm.totalPrice).toBe(expectedPrice)
   })
 })
-
 
 describe('getAdjustedPrice', () => {
   it('should apply the custom price for dependent variants', () => {
