@@ -114,6 +114,36 @@ class VariantDependencyUpdateSchema(BaseModel):
     restrictions: Optional[str] = None
 
 
+class CustomPriceSchema(BaseModel):
+    """
+    Schema for representing a custom price for a part variant.
+    """
+
+    variant_id: UUID
+    dependent_variant_id: UUID
+    custom_price: float
+
+
+class CustomPriceCreateSchema(BaseModel):
+    """
+    Schema for creating a custom price for a part variant.
+    """
+
+    variant_id: UUID
+    dependent_variant_id: UUID
+    custom_price: float
+
+
+class CustomPriceUpdateSchema(BaseModel):
+    """
+    Schema for updating a custom price for a part variant.
+    """
+
+    variant_id: Optional[UUID] = None
+    dependent_variant_id: Optional[UUID] = None
+    custom_price: Optional[float] = None
+
+
 class PartVariantSchema(BaseSchema):
     """
     Schema for representing a part variant.
@@ -126,6 +156,7 @@ class PartVariantSchema(BaseSchema):
     stock_quantity: int
 
     dependencies: Optional[List[VariantDependencySchema]] = []
+    custom_prices: Optional[List[CustomPriceSchema]] = []
 
 
 class PartVariantCreateSchema(BaseModel):

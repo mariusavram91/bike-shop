@@ -10,6 +10,7 @@ from app.database import Session
 from app.api.models import (
     Cart,
     CartItem,
+    CustomPrice,
     Product,
     ProductPart,
     PartVariant,
@@ -17,6 +18,8 @@ from app.api.models import (
 )
 from app.api.schemas import (
     CartCreateSchema,
+    CustomPriceCreateSchema,
+    CustomPriceUpdateSchema,
     PartVariantCreateSchema,
     PartVariantUpdateSchema,
     ProductCreateSchema,
@@ -522,6 +525,129 @@ def delete_variant_dependency(
         return False
 
     session.delete(dependency)
+    session.commit()
+
+    return True
+
+
+# Custom Prices CRUD
+
+
+def create_custom_price(
+    session: Session,
+    custom_price: CustomPriceCreateSchema,
+) -> CustomPrice:
+    """
+    Create a new custom price in the database.
+
+    Args:
+        session (Session): The database session.
+        custom_price (CustomPrice): The custom price object to be added.
+
+    Returns:
+        CustomPrice: The newly created custom price with a populated `id`
+            field.
+    """
+    created_custom_price = CustomPrice(**custom_price.model_dump())
+
+    session.add(created_custom_price)
+    session.commit()
+    session.refresh(created_custom_price)
+
+    return created_custom_price
+
+
+def get_custom_price_by_id(
+    session: Session,
+    custom_price_id: UUID,
+) -> Optional[CustomPrice]:
+    """
+    Retrieve a custom price from the database by its ID.
+
+    Args:
+        session (Session): The database session.
+        custom_price_id (UUID): The ID of the custom price to retrieve.
+
+    Returns:
+        Optional[CustomPrice]: The custom price object if found,
+            otherwise None.
+    """
+    return session.get(CustomPrice, custom_price_id)
+
+
+def get_all_custom_prices(
+    session: Session,
+) -> List[CustomPrice]:
+    """
+    Retrieve all custom prices from the database.
+
+    Args:
+        session (Session): The database session.
+
+    Returns:
+        List[CustomPrice]: A list of all custom prices in the database.
+    """
+    statement: SelectOfScalar[CustomPrice] = select(CustomPrice)
+    custom_prices: Sequence[CustomPrice] = session.exec(statement).all()
+
+    return list(custom_prices)
+
+
+def update_custom_price(
+    session: Session,
+    custom_price_id: UUID,
+    custom_price_data: CustomPriceUpdateSchema,
+) -> Optional[CustomPrice]:
+    """
+    Update an existing custom price in the database.
+
+    Args:
+        session (Session): The database session.
+        custom_price_id (UUID): The ID of the custom price to update.
+        custom_price_data (dict): The custom price attributes to update.
+
+    Returns:
+        Optional[CustomPrice]: The updated custom price if found,
+            otherwise None.
+    """
+    custom_price: Optional[CustomPrice] = session.get(
+        CustomPrice,
+        custom_price_id,
+    )
+    if not custom_price:
+        return None
+
+    for key, value in custom_price_data.model_dump(exclude_unset=True).items():
+        setattr(custom_price, key, value)
+
+    session.commit()
+    session.refresh(custom_price)
+
+    return custom_price
+
+
+def delete_custom_price(
+    session: Session,
+    custom_price_id: UUID,
+) -> bool:
+    """
+    Delete a custom price from the database by its ID.
+
+    Args:
+        session (Session): The database session.
+        custom_price_id (UUID): The ID of the custom price to delete.
+
+    Returns:
+        bool: True if the custom price was deleted, False if not found.
+    """
+    custom_price: Optional[CustomPrice] = session.get(
+        CustomPrice,
+        custom_price_id,
+    )
+    if not custom_price:
+        return False
+
+    session.delete(custom_price)
     session.commit()
 
     return True

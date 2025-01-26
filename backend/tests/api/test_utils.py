@@ -6,7 +6,7 @@ from uuid import uuid4
 import pytest
 from sqlmodel import Session
 
-from app.api.models import Product, PartVariant
+from app.api.models import CustomPrice, Product, PartVariant
 from app.api.utils import calculate_total_price
 
 
@@ -50,11 +50,19 @@ def sample_data(test_db: Session) -> dict[str, Any]:
     )
     test_db.add_all([variant1, variant2, variant3])
 
+    custom_price = CustomPrice(
+        variant_id=variant1.id,
+        dependent_variant_id=variant2.id,
+        custom_price=10.0,
+    )
+    test_db.add(custom_price)
+
     test_db.commit()
 
     return {
         "product": product,
         "variants": [variant1, variant2, variant3],
+        "custom_price": custom_price,
     }
 
 
@@ -71,10 +79,25 @@ def test_calculate_total_price_valid(
         selected_variant_ids=[variants[0].id, variants[1].id],
     )
     assert total_price == (
-        product.base_price  # 100
-        + variants[0].price  # + 20
-        + variants[1].price  # + 30
+        product.base_price
+        + variants[0].price
+        + variants[1].price
+        + 10.0  # Custom price
     )
+
+
+def test_calculate_total_price_no_dependencies(
+    test_db: Session, sample_data: dict[str, Any]
+) -> None:
+    product: Product = sample_data["product"]
+    variants: List[PartVariant] = sample_data["variants"]
+
+    total_price: float = calculate_total_price(
+        test_db,
+        product_id=product.id,
+        selected_variant_ids=[variants[0].id],
+    )
+    assert total_price == product.base_price + variants[0].price
 
 
 def test_calculate_total_price_variant_out_of_stock(

@@ -107,6 +107,8 @@ class PartVariant(BaseModel, table=True):
         stock_quantity (int): The stock quantity of the part variant.
         part (Optional[ProductPart]): The product part that this variant
             belongs to.
+        custom_prices (List[CustomPrice]): The custom prices associated
+            with this variant.
     """
 
     __tablename__: str = "part_variants"
@@ -122,6 +124,12 @@ class PartVariant(BaseModel, table=True):
     )
     dependencies: List["VariantDependency"] = Relationship(
         back_populates="variant",
+    )
+    custom_prices: List["CustomPrice"] = Relationship(
+        back_populates="variant",
+        sa_relationship_kwargs={
+            "foreign_keys": "CustomPrice.variant_id",
+        },
     )
 
 
@@ -149,6 +157,45 @@ class VariantDependency(SQLModel, table=True):
 
     variant: Optional[PartVariant] = Relationship(
         back_populates="dependencies",
+    )
+
+
+class CustomPrice(BaseModel, table=True):
+    """
+    Represents a custom price for a part variant.
+
+    Attributes:
+        variant_id (UUID): The ID of the variant to which this custom
+            price applies.
+        dependent_variant_id (UUID): The ID of the variant that the
+            custom price depends on.
+        custom_price (float): The custom price set for the variant.
+        variant (Optional[PartVariant]): The part variant that this
+            custom price applies to.
+    """
+
+    __tablename__: str = "custom_prices"
+
+    variant_id: UUID = Field(
+        foreign_key="part_variants.id",
+        primary_key=True,
+    )
+    dependent_variant_id: UUID = Field(
+        foreign_key="part_variants.id",
+        primary_key=True,
+    )
+    custom_price: float
+
+    variant: Optional[PartVariant] = Relationship(
+        back_populates="custom_prices",
+        sa_relationship_kwargs={
+            "foreign_keys": "CustomPrice.variant_id",
+        },
+    )
+    dependent_variant: Optional[PartVariant] = Relationship(
+        sa_relationship_kwargs={
+            "foreign_keys": "CustomPrice.dependent_variant_id",
+        },
     )
 
 

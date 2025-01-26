@@ -9,6 +9,7 @@ from sqlmodel import Session
 from app.database import get_session
 from app.api.models import (
     Cart,
+    CustomPrice,
     Product,
     ProductPart,
     PartVariant,
@@ -16,13 +17,18 @@ from app.api.models import (
 )
 from app.api.services import (
     create_cart_with_items,
+    create_custom_price,
     create_product,
     create_variant_dependency,
+    delete_custom_price,
     delete_variant_dependency,
+    get_all_custom_prices,
     get_all_variant_dependencies,
+    get_custom_price_by_id,
     get_product_by_id,
     get_all_products,
     get_variant_dependency_by_id,
+    update_custom_price,
     update_product,
     delete_product,
     create_product_part,
@@ -40,6 +46,9 @@ from app.api.services import (
 from app.api.schemas import (
     CartCreateSchema,
     CartSchema,
+    CustomPriceCreateSchema,
+    CustomPriceSchema,
+    CustomPriceUpdateSchema,
     PartVariantCreateSchema,
     PartVariantSchema,
     PartVariantUpdateSchema,
@@ -664,6 +673,161 @@ def delete_variant_dependency_route(
         )
 
 
+# Custom Price Routes
+
+
+@router.post("/custom-prices", response_model=CustomPriceSchema)
+def create_custom_price_route(
+    custom_price: CustomPriceCreateSchema,
+    session: Session = Depends(get_session),
+) -> CustomPrice:
+    """
+    This route allows for creating a new custom price. The
+    `custom_price` parameter contains all necessary details for
+    the new custom price. The custom price is saved to the database
+    and the created custom price is returned.
+
+    Args:
+        custom_price (CustomPrice): The custom price details to be created.
+        session (Session): The database session for executing operations.
+
+    Returns:
+        CustomPrice: The newly created custom price with its generated ID.
+    """
+    return create_custom_price(session=session, custom_price=custom_price)
+
+
+@router.get(
+    "/custom-prices/{custom_price_id}",
+    response_model=CustomPriceSchema,
+)
+def get_custom_price_route(
+    custom_price_id: UUID,
+    session: Session = Depends(get_session),
+) -> CustomPrice:
+    """
+    This route retrieves a custom price based on the provided
+    `custom_price_id`.
+    If no custom price is found, a 404 error is raised.
+
+    Args:
+        custom_price_id (UUID): The ID of the custom price to retrieve.
+        session (Session): The database session for executing operations.
+
+    Returns:
+        CustomPrice: The custom price details if found.
+
+    Raises:
+        HTTPException: If the custom price is not found, a 404 error
+            is raised.
+    """
+    custom_price: Optional[CustomPrice] = get_custom_price_by_id(
+        session=session,
+        custom_price_id=custom_price_id,
+    )
+    if not custom_price:
+        raise HTTPException(
+            status_code=404,
+            detail="Custom price not found",
+        )
+
+    return custom_price
+
+
+@router.get("/custom-prices", response_model=List[CustomPriceSchema])
+def get_all_custom_prices_route(
+    session: Session = Depends(get_session),
+) -> List[CustomPrice]:
+    """
+    This route retrieves all custom prices from the database. The list of
+    custom prices is returned as a response.
+
+    Args:
+        session (Session): The database session for executing operations.
+
+    Returns:
+        List[CustomPrice]: A list of all custom prices.
+    """
+    return get_all_custom_prices(session=session)
+
+
+@router.put(
+    "/custom-prices/{custom_price_id}",
+    response_model=CustomPriceSchema,
+)
+def update_custom_price_route(
+    custom_price_id: UUID,
+    custom_price_data: CustomPriceUpdateSchema,
+    session: Session = Depends(get_session),
+) -> CustomPrice:
+    """
+    This route allows for updating the details of an existing
+    custom price.
+    The custom price's attributes can be modified by passing
+    the `custom_price_data` dictionary.
+    If the custom price is not found, a 404 error is raised.
+
+    Args:
+        custom_price_id (UUID): The ID of the custom price to update.
+        custom_price_data (dict): A dictionary containing the fields
+            to be updated.
+        session (Session): The database session for executing operations.
+
+    Returns:
+        CustomPrice: The updated custom price details.
+
+    Raises:
+        HTTPException: If the custom price is not found, a 404 error is raised.
+    """
+    updated_price: Optional[CustomPrice] = update_custom_price(
+        session=session,
+        custom_price_id=custom_price_id,
+        custom_price_data=custom_price_data,
+    )
+    if not updated_price:
+        raise HTTPException(
+            status_code=404,
+            detail="Custom price not found",
+        )
+
+    return updated_price
+
+
+@router.delete(
+    "/custom-prices/{custom_price_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_custom_price_route(
+    custom_price_id: UUID,
+    session: Session = Depends(get_session),
+) -> None:
+    """
+    This route deletes a custom price from the system by its `custom_price_id`.
+    If the custom price is not found, a 404 error is raised.
+
+    Args:
+        custom_price_id (UUID): The ID of the custom price to delete.
+        session (Session): The database session for executing operations.
+
+    Returns:
+        None: with status HTTP_204_NO_CONTENT
+
+    Raises:
+        HTTPException: If the custom price is not found, a 404 error is raised.
+    """
+    if not delete_custom_price(
+        session=session,
+        custom_price_id=custom_price_id,
+    ):
+        raise HTTPException(
+            status_code=404,
+            detail="Custom price not found",
+        )
+
+
+# Carts routes
+
+
 @router.post("/carts", response_model=CartSchema)
 def create_cart_with_items_route(
     cart_data: CartCreateSchema,
@@ -699,6 +863,9 @@ def create_cart_with_items_route(
 
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+# Pricing routes
 
 
 @router.post("/calculate-price", response_model=float)

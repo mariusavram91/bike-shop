@@ -1,11 +1,11 @@
 # app/api/utils.py
 
 from uuid import UUID
-from typing import List, Optional
+from typing import List, Optional, Sequence
 
-from sqlmodel import Session
+from sqlmodel import Session, select
 
-from app.api.models import Product, PartVariant
+from app.api.models import CustomPrice, Product, PartVariant
 
 
 def calculate_total_price(
@@ -15,6 +15,10 @@ def calculate_total_price(
 ) -> float:
     """
     Calculate the total price of selected part variants.
+
+    It searches for all custom prices of each variant and adjusts
+    the total price based on that. The custom price is just an
+    addition to the variant's base price.
 
     Args:
         variant_ids: A list of UUIDs of the selected part variants.
@@ -41,5 +45,15 @@ def calculate_total_price(
             raise ValueError(f"Variant with ID {variant_id} is out of stock.")
 
         total_price += variant.price
+
+        custom_prices: Sequence[CustomPrice] = session.exec(
+            select(CustomPrice).where(
+                CustomPrice.variant_id == variant_id,
+            )
+        ).all()
+
+        for custom_price_entry in custom_prices:
+            if custom_price_entry.dependent_variant_id in selected_variant_ids:
+                total_price += custom_price_entry.custom_price
 
     return total_price
