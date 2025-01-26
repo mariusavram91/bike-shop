@@ -87,6 +87,33 @@ class CartUpdateSchema(BaseModel):
     total_price: Optional[float] = None
 
 
+class VariantDependencySchema(BaseModel):
+    """
+    Schema for representing a dependency between part variants.
+    """
+
+    variant_id: UUID
+    restrictions: Optional[str] = None
+
+
+class VariantDependencyCreateSchema(BaseModel):
+    """
+    Schema for creating a dependency between part variants.
+    """
+
+    variant_id: UUID
+    restrictions: Optional[str] = None
+
+
+class VariantDependencyUpdateSchema(BaseModel):
+    """
+    Schema for updating a dependency between part variants.
+    """
+
+    variant_id: Optional[UUID] = None
+    restrictions: Optional[str] = None
+
+
 class PartVariantSchema(BaseSchema):
     """
     Schema for representing a part variant.
@@ -97,6 +124,8 @@ class PartVariantSchema(BaseSchema):
     price: float
     is_available: bool
     stock_quantity: int
+
+    dependencies: Optional[List[VariantDependencySchema]] = []
 
 
 class PartVariantCreateSchema(BaseModel):

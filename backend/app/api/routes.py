@@ -12,12 +12,17 @@ from app.api.models import (
     Product,
     ProductPart,
     PartVariant,
+    VariantDependency,
 )
 from app.api.services import (
     create_cart_with_items,
     create_product,
+    create_variant_dependency,
+    delete_variant_dependency,
+    get_all_variant_dependencies,
     get_product_by_id,
     get_all_products,
+    get_variant_dependency_by_id,
     update_product,
     delete_product,
     create_product_part,
@@ -30,6 +35,7 @@ from app.api.services import (
     get_all_part_variants,
     update_part_variant,
     delete_part_variant,
+    update_variant_dependency,
 )
 from app.api.schemas import (
     CartCreateSchema,
@@ -43,7 +49,11 @@ from app.api.schemas import (
     ProductPartUpdateSchema,
     ProductSchema,
     ProductUpdateSchema,
+    VariantDependencyCreateSchema,
+    VariantDependencySchema,
+    VariantDependencyUpdateSchema,
 )
+from app.api.utils import calculate_total_price
 
 router = APIRouter()
 
@@ -495,6 +505,165 @@ def delete_part_variant_route(
         )
 
 
+# Variant Dependency Routes
+
+
+@router.post("/variant-dependencies", response_model=VariantDependencySchema)
+def create_variant_dependency_route(
+    dependency: VariantDependencyCreateSchema,
+    session: Session = Depends(get_session),
+) -> VariantDependency:
+    """
+    This route allows for creating a new dependency for a part variant.
+    The `dependency` parameter contains all necessary details for the
+    new dependency. The dependency is saved to the database and the created
+    dependency is returned.
+
+    Args:
+        dependency (VariantDependency): The variant dependency details
+            to be created.
+        session (Session): The database session for executing operations.
+
+    Returns:
+        VariantDependency: The newly created variant dependency with
+            its generated ID.
+    """
+    return create_variant_dependency(session=session, dependency=dependency)
+
+
+@router.get(
+    "/variant-dependencies/{variant_id}",
+    response_model=VariantDependencySchema,
+)
+def get_variant_dependency_route(
+    variant_id: UUID,
+    session: Session = Depends(get_session),
+) -> VariantDependency:
+    """
+    This route retrieves a variant dependency based on the provided
+    `variant_id`.
+    If no variant dependency is found, a 404 error is raised.
+
+    Args:
+        variant_id (UUID): The ID of the variant dependency to retrieve.
+        session (Session): The database session for executing operations.
+
+    Returns:
+        VariantDependency: The variant dependency details if found.
+
+    Raises:
+        HTTPException: If the variant dependency is not found, a 404
+            error is raised.
+    """
+    dependency: Optional[VariantDependency] = get_variant_dependency_by_id(
+        session=session,
+        variant_id=variant_id,
+    )
+    if not dependency:
+        raise HTTPException(
+            status_code=404,
+            detail="Variant dependency not found",
+        )
+
+    return dependency
+
+
+@router.get(
+    "/variant-dependencies",
+    response_model=List[VariantDependencySchema],
+)
+def get_all_variant_dependencies_route(
+    session: Session = Depends(get_session),
+) -> List[VariantDependency]:
+    """
+    This route retrieves all variant dependencies from the database.
+    The list of variant dependencies is returned as a response.
+
+    Args:
+        session (Session): The database session for executing operations.
+
+    Returns:
+        List[VariantDependency]: A list of all variant dependencies.
+    """
+    return get_all_variant_dependencies(session=session)
+
+
+@router.put(
+    "/variant-dependencies/{variant_id}",
+    response_model=VariantDependencySchema,
+)
+def update_variant_dependency_route(
+    variant_id: UUID,
+    dependency_data: VariantDependencyUpdateSchema,
+    session: Session = Depends(get_session),
+) -> VariantDependency:
+    """
+    This route allows for updating the details of an existing variant
+    dependency. It allows partial updates.
+    The dependency's attributes can be modified by passing the
+    `dependency_data` dictionary.
+    If the variant dependency is not found, a 404 error is raised.
+
+    Args:
+        variant_id (UUID): The ID of the variant dependency to update.
+        dependency_data (dict): A dictionary containing the fields to
+            be updated.
+        session (Session): The database session for executing operations.
+
+    Returns:
+        VariantDependency: The updated variant dependency details.
+
+    Raises:
+        HTTPException: If the variant dependency is not found, a 404
+            error is raised.
+    """
+    updated_dependency: Optional[VariantDependency] = (
+        update_variant_dependency(  # noqa: E501
+            session=session,
+            variant_id=variant_id,
+            dependency_data=dependency_data,
+        )
+    )
+    if not updated_dependency:
+        raise HTTPException(
+            status_code=404,
+            detail="Variant dependency not found",
+        )
+
+    return updated_dependency
+
+
+@router.delete(
+    "/variant-dependencies/{variant_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_variant_dependency_route(
+    variant_id: UUID,
+    session: Session = Depends(get_session),
+) -> None:
+    """
+    This route deletes a variant dependency from the system by its
+    `variant_id`.
+    If the variant dependency is not found, a 404 error is raised.
+
+    Args:
+        variant_id (UUID): The ID of the variant dependency to delete.
+        session (Session): The database session for executing operations.
+
+    Returns:
+        None: with status HTTP_204_NO_CONTENT
+
+    Raises:
+        HTTPException: If the variant dependency is not found, a 404
+            error is raised.
+    """
+    if not delete_variant_dependency(session=session, variant_id=variant_id):
+        raise HTTPException(
+            status_code=404,
+            detail="Variant dependency not found",
+        )
+
+
 @router.post("/carts", response_model=CartSchema)
 def create_cart_with_items_route(
     cart_data: CartCreateSchema,
@@ -530,3 +699,36 @@ def create_cart_with_items_route(
 
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/calculate-price", response_model=float)
+def calculate_total_price_route(
+    product_id: UUID,
+    variant_ids: List[UUID],
+    session: Session = Depends(get_session),
+) -> dict:
+    """
+    Calculate the total price of a product with selected variants.
+
+    This route calculates the total price for a product based on its ID and
+    the list of variant IDs provided. The `product_id` refers to the base
+    product, and the `variant_ids` are additional variants added to the
+    product. The calculated total price is returned.
+
+    Args:
+        product_id (UUID): The ID of the base product.
+        variant_ids (List[UUID]): A list of variant IDs selected for
+            the product.
+        session (Session): The database session for executing operations.
+
+    Returns:
+        dict: A dictionary containing the total price of the product as
+            a float.
+    """
+    total_price: float = calculate_total_price(
+        session=session,
+        product_id=product_id,
+        selected_variant_ids=variant_ids,
+    )
+
+    return {"message": total_price}

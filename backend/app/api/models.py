@@ -120,6 +120,36 @@ class PartVariant(BaseModel, table=True):
     part: Optional[ProductPart] = Relationship(
         back_populates="variants",
     )
+    dependencies: List["VariantDependency"] = Relationship(
+        back_populates="variant",
+    )
+
+
+class VariantDependency(SQLModel, table=True):
+    """
+    Represents a dependency between two part variants. Any ids in the
+    restrictions field should make variant unavailable.
+
+    Attributes:
+        variant_id (UUID): The ID of the variant this dependency is
+            related to.
+        restrictions (Optional[str]): Any restrictions related to
+            the dependency.
+        variant (Optional[PartVariant]): The part variant that this
+            dependency applies to.
+    """
+
+    __tablename__: str = "variant_dependencies"
+
+    variant_id: UUID = Field(
+        foreign_key="part_variants.id",
+        primary_key=True,
+    )
+    restrictions: Optional[str]
+
+    variant: Optional[PartVariant] = Relationship(
+        back_populates="dependencies",
+    )
 
 
 class Cart(BaseModel, table=True):

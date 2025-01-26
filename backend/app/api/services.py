@@ -13,6 +13,7 @@ from app.api.models import (
     Product,
     ProductPart,
     PartVariant,
+    VariantDependency,
 )
 from app.api.schemas import (
     CartCreateSchema,
@@ -22,6 +23,8 @@ from app.api.schemas import (
     ProductPartCreateSchema,
     ProductPartUpdateSchema,
     ProductUpdateSchema,
+    VariantDependencyCreateSchema,
+    VariantDependencyUpdateSchema,
 )
 
 # Products CRUD
@@ -391,6 +394,134 @@ def delete_part_variant(
         return False
 
     session.delete(variant)
+    session.commit()
+
+    return True
+
+
+# Variant Dependencies CRUD
+
+
+def create_variant_dependency(
+    session: Session,
+    dependency: VariantDependencyCreateSchema,
+) -> VariantDependency:
+    """
+    Create a new variant dependency in the database.
+
+    Args:
+        session (Session): The database session.
+        dependency (VariantDependency): The variant dependency object
+            to be added.
+
+    Returns:
+        VariantDependency: The newly created variant dependency
+            with a populated `id` field.
+    """
+    created_dependency = VariantDependency(**dependency.model_dump())
+
+    session.add(created_dependency)
+    session.commit()
+    session.refresh(created_dependency)
+
+    return created_dependency
+
+
+def get_variant_dependency_by_id(
+    session: Session,
+    variant_id: UUID,
+) -> Optional[VariantDependency]:
+    """
+    Retrieve a variant dependency from the database by its ID.
+
+    Args:
+        session (Session): The database session.
+        variant_id (UUID): The ID of the variant dependency to retrieve.
+
+    Returns:
+        Optional[VariantDependency]: The variant dependency object
+            if found, otherwise None.
+    """
+    return session.get(VariantDependency, variant_id)
+
+
+def get_all_variant_dependencies(
+    session: Session,
+) -> List[VariantDependency]:
+    """
+    Retrieve all variant dependencies from the database.
+
+    Args:
+        session (Session): The database session.
+
+    Returns:
+        List[VariantDependency]: A list of all variant dependencies
+            in the database.
+    """
+    variant_dependencies: Sequence[VariantDependency] = session.exec(
+        select(VariantDependency)
+    ).all()
+
+    return list(variant_dependencies)
+
+
+def update_variant_dependency(
+    session: Session,
+    variant_id: UUID,
+    dependency_data: VariantDependencyUpdateSchema,
+) -> Optional[VariantDependency]:
+    """
+    Update an existing variant dependency in the database.
+
+    Args:
+        session (Session): The database session.
+        variant_id (UUID): The ID of the variant dependency to update.
+        dependency_data (dict): The variant dependency attributes to
+            update.
+
+    Returns:
+        Optional[VariantDependency]: The updated variant dependency
+            if found, otherwise None.
+    """
+    dependency: Optional[VariantDependency] = session.get(
+        VariantDependency,
+        variant_id,
+    )
+    if not dependency:
+        return None
+
+    for key, value in dependency_data.model_dump(exclude_unset=True).items():
+        setattr(dependency, key, value)
+
+    session.commit()
+    session.refresh(dependency)
+
+    return dependency
+
+
+def delete_variant_dependency(
+    session: Session,
+    variant_id: UUID,
+) -> bool:
+    """
+    Delete a variant dependency from the database by its ID.
+
+    Args:
+        session (Session): The database session.
+        variant_id (UUID): The ID of the variant dependency to delete.
+
+    Returns:
+        bool: True if the variant dependency was deleted, False if
+            not found.
+    """
+    dependency: Optional[VariantDependency] = session.get(
+        VariantDependency,
+        variant_id,
+    )
+    if not dependency:
+        return False
+
+    session.delete(dependency)
     session.commit()
 
     return True

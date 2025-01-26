@@ -13,12 +13,23 @@
             :key="variant.id"
             :class="[
               'block w-full py-2 mb-2 rounded transition-colors',
-              variant.is_available
-                ? 'bg-blue-500 text-white hover:bg-blue-600'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed',
+              isDeactivatedVariant(variant.id)
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : variant.is_available
+                  ? 'bg-blue-500 text-white hover:bg-blue-600'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed',
             ]"
-            :disabled="!variant.is_available"
-            @click="selectChoice(index + 1, part.id, variant.name, variant.price)"
+            :disabled="!variant.is_available || isDeactivatedVariant(variant.id)"
+            @click="
+              selectChoice(
+                variant.id,
+                index + 1,
+                part.id,
+                variant.name,
+                variant.price,
+                variant.dependencies,
+              )
+            "
           >
             {{ variant.name }} (+{{ variant.price }} €)
             <span class="text-sm text-red-500" v-if="!variant.is_available">Not in stock</span>
@@ -92,7 +103,7 @@
 </template>
 
 <script lang="ts">
-import type { Product, ProductPart } from '@/services/productsServices'
+import type { Product, ProductPart, VariantDependency } from '@/services/productsServices'
 
 export default {
   props: {
@@ -109,8 +120,12 @@ export default {
     return {
       currentStep: 1,
       selectedChoices: {} as Record<string, { name: string; price: number }>,
-      choicesHistory: [] as Array<Record<string, { name: string; price: number }>>,
+      choicesHistory: [] as Array<{
+        selectedChoices: Record<string, { name: string; price: number }>
+        deactivatedVariants: Set<string>
+      }>,
       totalPrice: null as number | null,
+      deactivatedVariants: new Set<string>(),
     }
   },
   mounted() {
@@ -119,17 +134,39 @@ export default {
   methods: {
     /**
      * Selects a variant for a given product part and progresses to the next step.
+     * @param {string} choiceId - ID of the chosen variant.
      * @param {number} step - Current step in the customisation process.
      * @param {string} partId - ID of the product part.
      * @param {string} choiceName - Name of the selected variant.
      * @param {number} choicePrice - Price of the selected variant.
+     * @param {VariantDependency[]} dependencies - List of dependencies of the chosen variant.
      */
-    selectChoice(step: number, partId: string, choiceName: string, choicePrice: number) {
-      this.choicesHistory.push({ ...this.selectedChoices })
+    selectChoice(
+      choiceId: string,
+      step: number,
+      partId: string,
+      choiceName: string,
+      choicePrice: number,
+      dependencies: VariantDependency[],
+    ) {
+      this.choicesHistory.push({
+        selectedChoices: { ...this.selectedChoices },
+        deactivatedVariants: new Set(this.deactivatedVariants),
+      })
 
       this.selectedChoices[partId] = { name: choiceName, price: choicePrice }
 
+      if (dependencies.length) {
+        dependencies.forEach(dependency => {
+          this.deactivatedVariants.add(dependency.restrictions)
+        })
+      }
+
       this.calculateTotalPrice()
+
+      if (this.deactivatedVariants.has(choiceId)) {
+        this.deactivatedVariants.delete(choiceId)
+      }
 
       if (step < this.productParts.length + 1) {
         this.currentStep++
@@ -139,14 +176,24 @@ export default {
     },
 
     /**
+     * A list of unique variant ids to be deactivated.
+     *
+     * @param {string} variantId The Id of the variant.
+     */
+    isDeactivatedVariant(variantId: string) {
+      return this.deactivatedVariants.has(variantId)
+    },
+
+    /**
      * Undoes the last selection by restoring the previous state.
      */
     undo() {
       if (this.choicesHistory.length > 0) {
         const previousState = this.choicesHistory.pop()
         if (previousState) {
-          this.selectedChoices = { ...previousState }
+          this.selectedChoices = previousState.selectedChoices
           this.calculateTotalPrice()
+          this.deactivatedVariants = new Set(previousState.deactivatedVariants)
           this.currentStep--
         }
       }
@@ -161,6 +208,7 @@ export default {
       this.selectedChoices = {}
       this.currentStep = 1
       this.choicesHistory = []
+      this.deactivatedVariants.clear()
       this.calculateTotalPrice()
       this.$emit('selected-parts', this.selectedChoices)
     },

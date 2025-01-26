@@ -8,6 +8,7 @@ from app.api.models import (
     Product,
     ProductPart,
     PartVariant,
+    VariantDependency,
 )
 
 
@@ -154,6 +155,20 @@ def seed_data(session: Session) -> None:
     session.add(road_bike_frame_variant_2)
     session.add(road_bike_finish_variant)
     session.add(road_bike_finish_variant_2)
+
+    # Create Variant Dependencies
+    wheels_dependency_frame = VariantDependency(
+        variant_id=road_bike_wheel_variant_2.id,
+        restrictions=f"{road_bike_frame_variant.id}",
+    )
+
+    frame_dependency_finish = VariantDependency(
+        variant_id=road_bike_frame_variant_2.id,
+        restrictions=f"{road_bike_finish_variant.id}",
+    )
+
+    session.add(wheels_dependency_frame)
+    session.add(frame_dependency_finish)
 
     session.commit()
 

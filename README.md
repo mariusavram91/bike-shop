@@ -204,14 +204,14 @@ _As the admin (Marcus), I want to define and manage rules for restricted combina
 
 Backend:
 
-- [ ] Add a table to manage restricted combinations.
-- [ ] Expose the restrictions in the API so frontend can enable or disable options when the customer makes choices.
+- [x] Add a table to manage restricted combinations.
+- [x] Expose the restrictions in the API so frontend can enable or disable options when the customer makes choices.
 - [ ] Add tests.
 
 Frontend:
 
-- [ ] Add the restrictions in the store.
-- [ ] Prevent customers from selecting invalid options in the bike builder.
+- [x] Add the restrictions in the store.
+- [x] Prevent customers from selecting invalid options in the bike builder.
 - [ ] Add tests.
 
 ### Define custom pricing rules
@@ -440,6 +440,7 @@ Alternatively, check `backend/README.md` or `frontend/README.md` on how to do it
 I have used the free options on render.com to deploy this app. There are 3 services: a postgres db, a frontend service, and a backend service. Environment variable were used for configuration. As it's for free, render shuts down servers after 15 minutes (this happens with the API service), so it might take some time until the services start on the first request. It could be more than a minute.
 
 Live frontend: [https://bike-shop-fe.onrender.com](https://bike-shop-fe.onrender.com)
+
 Live API: [https://bike-shop-api-vzjl.onrender.com](https://bike-shop-api-vzjl.onrender.com) (Swagger is turned off)
 
-You can check if the API is live by going to [https://bike-shop-api-vzjl.onrender.com/api/v1/healthcheck](https://bike-shop-api-vzjl.onrender.com/api/v1/healthcheck).
+You can check if the API is live by going to [https://bike-shop-api-vzjl.onrender.com/api/v1/healthchecker](https://bike-shop-api-vzjl.onrender.com/api/v1/healthchecker).

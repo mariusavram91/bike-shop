@@ -42,6 +42,13 @@ export interface PartVariant {
   price: number
   is_available: boolean
   stock_quantity: number
+
+  dependencies: VariantDependency[]
+}
+
+export interface VariantDependency {
+    variant_id: string
+    restrictions: string
 }
 
 /**
