@@ -1,16 +1,40 @@
 # db_seed.py
 
-from sqlmodel import Session
+from sqlalchemy import delete
+from sqlmodel import Session, select
 
 from app.database import engine
 
 from app.api.models import (
+    Cart,
+    CartItem,
     CustomPrice,
     Product,
     ProductPart,
     PartVariant,
     VariantDependency,
 )
+
+
+def delete_all_data(session: Session) -> None:
+    #
+    # WARNING: This will delete any existing data in the database
+    #
+    # Delete all existing entries in the tables before seeding to
+    # keep consistency and prevent duplicated data across deployments.
+
+    with session.begin():
+        session.exec(delete(CartItem))  # type: ignore
+        session.exec(delete(Cart))  # type: ignore
+        session.exec(delete(VariantDependency))  # type: ignore
+        session.exec(delete(CustomPrice))  # type: ignore
+        session.exec(delete(PartVariant))  # type: ignore
+        session.exec(delete(ProductPart))  # type: ignore
+        session.exec(delete(Product))  # type: ignore
+
+    session.commit()
+
+    print("Data deleted successfully.")
 
 
 def seed_data(session: Session) -> None:
@@ -89,7 +113,7 @@ def seed_data(session: Session) -> None:
         name="Standard Road Handlebar",
         price=100.00,
         is_available=True,
-        stock_quantity=15,
+        stock_quantity=2,
     )
 
     road_bike_handlebar_variant_2 = PartVariant(
@@ -148,6 +172,14 @@ def seed_data(session: Session) -> None:
         stock_quantity=5,
     )
 
+    road_bike_finish_variant_3 = PartVariant(
+        part_id=road_bike_finish.id,
+        name="Red",
+        price=100.00,
+        is_available=False,
+        stock_quantity=0,
+    )
+
     session.add(road_bike_handlebar_variant)
     session.add(road_bike_handlebar_variant_2)
     session.add(road_bike_wheel_variant)
@@ -156,14 +188,21 @@ def seed_data(session: Session) -> None:
     session.add(road_bike_frame_variant_2)
     session.add(road_bike_finish_variant)
     session.add(road_bike_finish_variant_2)
+    session.add(road_bike_finish_variant_3)
 
     # Add Custom Prices for custom parts
+
+    # Explanation: If the "Diamond Road Frame" is selected, the "Finish"
+    # part must be the "Shiny" option with an additional cost of 50.
     finish_custom_price = CustomPrice(
         variant_id=road_bike_finish_variant.id,
         dependent_variant_id=road_bike_frame_variant_2.id,
         custom_price=50.00,
     )
 
+    # Explanation: If the "Diamond Road Frame" is selected, the
+    # "Custom Carbon Fiber Road Handlebar"
+    # there will be an additional charge of 90.
     handlebar_custom_price = CustomPrice(
         variant_id=road_bike_handlebar_variant_2.id,
         dependent_variant_id=road_bike_frame_variant_2.id,
@@ -174,11 +213,15 @@ def seed_data(session: Session) -> None:
     session.add(handlebar_custom_price)
 
     # Create Variant Dependencies
+    # Explanation: "Thin Road Wheel" can only be selected if
+    # the "Standard Road Frame" is chosen.
     wheels_dependency_frame = VariantDependency(
         variant_id=road_bike_wheel_variant_2.id,
         restrictions=f"{road_bike_frame_variant.id}",
     )
 
+    # Explanation: "Diamond Road Frame" can only be selected
+    # if the "Shiny" finish is chosen.
     frame_dependency_finish = VariantDependency(
         variant_id=road_bike_frame_variant_2.id,
         restrictions=f"{road_bike_finish_variant.id}",
@@ -201,6 +244,7 @@ def seed() -> None:
         None
     """
     with Session(engine) as session:
+        delete_all_data(session)
         seed_data(session)
 
 
