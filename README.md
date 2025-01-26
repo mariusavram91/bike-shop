@@ -220,15 +220,15 @@ _As the admin (Marcus), I want to handle custom pricing for parts and combinatio
 
 Backend:
 
-- [ ] Create tables for custom prices and pricing dependencies. Custom price overrides the variant's price.
-- [ ] Create API endpoints for retrieving and getting the new price calculation.
+- [x] Create tables for custom prices and pricing dependencies. Custom price overrides the variant's price.
+- [x] Create API endpoints for retrieving and getting the new price calculation.
 - [ ] Add tests.
 
 Frontend:
 
 - [ ] Add UI components and views for admins to manage custom pricing in the admin are.
-- [ ] Update pricing in the bike builder view considering custom pricing dependencies.
-- [ ] Add tests.
+- [x] Update pricing in the bike builder view considering custom pricing dependencies.
+- [x] Add tests.
 
 ### Manage product catalog
 

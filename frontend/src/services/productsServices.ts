@@ -34,6 +34,8 @@ export interface ProductPart {
 /**
  * Interface representing a variant of a product part.
  * Variants are specific options for a part (e.g., Full-suspension for Frame).
+ * Variants can have restrictions based on other variants and are incompatible.
+ * Variants can also have dynamic pricing based on other variants.
  */
 export interface PartVariant {
   id: string
@@ -43,9 +45,28 @@ export interface PartVariant {
   is_available: boolean
   stock_quantity: number
 
+  custom_prices: CustomPrice[]
   dependencies: VariantDependency[]
 }
 
+/**
+ * Interface representing a custom price for a part variant.
+ * The variant_id is the one that the custom price applies to depending on if
+ * dependent_variant_id is selected or not.
+ * The custom_price is an addition on top of the PartVariant.price, it doesn't
+ * replace the price.
+ */
+export interface CustomPrice {
+    variant_id: string
+    dependent_variant_id: string
+    custom_price: number
+}
+
+/**
+ * Interface representing a list of restricting variant ids for variant_id.
+ * restrictions contains a comma separated list of uuid of other variants.
+ * All these ids are incompatible with variant_id and vice versa.
+ */
 export interface VariantDependency {
     variant_id: string
     restrictions: string

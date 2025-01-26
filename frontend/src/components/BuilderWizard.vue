@@ -26,12 +26,12 @@
                 index + 1,
                 part.id,
                 variant.name,
-                variant.price,
+                getAdjustedPrice(variant.id, variant.price),
                 variant.dependencies,
               )
             "
           >
-            {{ variant.name }} (+{{ variant.price }} €)
+            {{ variant.name }} (+{{ getAdjustedPrice(variant.id, variant.price) }} €)
             <span class="text-sm text-red-500" v-if="!variant.is_available">Not in stock</span>
           </button>
         </div>
@@ -39,7 +39,7 @@
         <div v-else-if="selectedChoices[part.id]" class="mt-4">
           <p class="text-sm text-gray-700">
             <strong>{{ selectedChoices[part.id].name }}</strong> (+{{
-              selectedChoices[part.id].price
+              getAdjustedPrice(selectedChoices[part.id].variant_id, selectedChoices[part.id].price)
             }}
             €)
           </p>
@@ -119,19 +119,84 @@ export default {
   data() {
     return {
       currentStep: 1,
-      selectedChoices: {} as Record<string, { name: string; price: number }>,
+      selectedChoices: {} as Record<string, { name: string; price: number; variant_id: string }>,
       choicesHistory: [] as Array<{
-        selectedChoices: Record<string, { name: string; price: number }>
+        selectedChoices: Record<string, { name: string; price: number; variant_id: string }>
         deactivatedVariants: Set<string>
-      }>,
+      }>, // Keeping track of the choices to have the option to undo and to activate/deactivate variants based on restrictions
       totalPrice: null as number | null,
-      deactivatedVariants: new Set<string>(),
+      deactivatedVariants: new Set<string>(), // Keeps track of the current deactivated variants ids based on the selected variants' restrictions
+      customPrices: {} as Record<
+        string,
+        { price: number; dependentVariantId: string; dependentPartId: string }
+      >, // Maps variant ids and their custom (additional) prices based on custom pricing data of the variants
     }
   },
-  mounted() {
-    this.calculateTotalPrice()
+  watch: {
+    productParts(newValue) {
+      if (newValue && newValue.length) {
+        this.initialiseCustomPrices()
+        this.calculateTotalPrice()
+      }
+    },
+    product(newValue) {
+      if (newValue && newValue.base_price) {
+        this.calculateTotalPrice()
+      }
+    },
   },
   methods: {
+    /**
+     * Initialises the customPrices object by mapping dependent_variant_id to its
+     * custom price.
+     */
+    initialiseCustomPrices() {
+      this.productParts.forEach(part => {
+        part.variants.forEach(variant => {
+          if (variant.custom_prices && variant.custom_prices.length > 0) {
+            variant.custom_prices.forEach(customPrice => {
+              // Find the part id of the dependent variant to use to check if
+              // the dependent variant has been selected
+              const dependentPartId = this.productParts.find(p =>
+                p.variants.some(v => v.id === customPrice.dependent_variant_id),
+              )?.id
+
+              if (dependentPartId) {
+                this.customPrices[customPrice.variant_id] = {
+                  price: customPrice.custom_price,
+                  dependentVariantId: customPrice.dependent_variant_id,
+                  dependentPartId: dependentPartId,
+                }
+              }
+            })
+          }
+        })
+      })
+    },
+
+    /**
+     * Gets the price adjusted by custom prices if applicable.
+     * The prices will be adjusted retroactively, so the order of
+     * selected of the variants/options should not affect the pricing.
+     * @param {string} variantId - The ID of the selected variant.
+     * @param {number} basePrice - The base price of the variant.
+     * @returns {number} - The adjusted price.
+     */
+    getAdjustedPrice(variantId: string, basePrice: number) {
+      const customPrice = this.customPrices[variantId]
+
+      if (customPrice) {
+        const dependentVariantId = customPrice.dependentVariantId
+        const dependentPartId = customPrice.dependentPartId
+
+        if (this.selectedChoices[dependentPartId]?.variant_id === dependentVariantId) {
+          return basePrice + customPrice.price
+        }
+      }
+
+      return basePrice
+    },
+
     /**
      * Selects a variant for a given product part and progresses to the next step.
      * @param {string} choiceId - ID of the chosen variant.
@@ -154,7 +219,12 @@ export default {
         deactivatedVariants: new Set(this.deactivatedVariants),
       })
 
-      this.selectedChoices[partId] = { name: choiceName, price: choicePrice }
+      const adjustedPrice = this.getAdjustedPrice(choiceId, choicePrice)
+      this.selectedChoices[partId] = {
+        name: choiceName,
+        price: adjustedPrice,
+        variant_id: choiceId,
+      }
 
       if (dependencies.length) {
         dependencies.forEach(dependency => {
@@ -219,10 +289,15 @@ export default {
      * in the preview card).
      */
     calculateTotalPrice() {
-      const additionalPrice = Object.values(this.selectedChoices).reduce(
-        (sum, choice) => sum + choice.price,
-        0,
-      )
+      let additionalPrice = 0
+
+      Object.values(this.selectedChoices).forEach(choice => {
+        const { variant_id, price } = choice
+
+        const adjustedPrice = this.getAdjustedPrice(variant_id, price)
+        additionalPrice += adjustedPrice
+      })
+
       if (this.product.base_price) {
         this.totalPrice = this.product.base_price + additionalPrice
 

@@ -5,6 +5,7 @@ from sqlmodel import Session
 from app.database import engine
 
 from app.api.models import (
+    CustomPrice,
     Product,
     ProductPart,
     PartVariant,
@@ -155,6 +156,22 @@ def seed_data(session: Session) -> None:
     session.add(road_bike_frame_variant_2)
     session.add(road_bike_finish_variant)
     session.add(road_bike_finish_variant_2)
+
+    # Add Custom Prices for custom parts
+    finish_custom_price = CustomPrice(
+        variant_id=road_bike_finish_variant.id,
+        dependent_variant_id=road_bike_frame_variant_2.id,
+        custom_price=50.00,
+    )
+
+    handlebar_custom_price = CustomPrice(
+        variant_id=road_bike_handlebar_variant_2.id,
+        dependent_variant_id=road_bike_frame_variant_2.id,
+        custom_price=90.00,
+    )
+
+    session.add(finish_custom_price)
+    session.add(handlebar_custom_price)
 
     # Create Variant Dependencies
     wheels_dependency_frame = VariantDependency(

@@ -32,6 +32,8 @@ const mockProductParts: ProductPart[] = [
         price: 300,
         is_available: true,
         stock_quantity: 4,
+        custom_prices: [],
+        dependencies: [],
       },
       {
         id: '1-2',
@@ -40,6 +42,8 @@ const mockProductParts: ProductPart[] = [
         price: 500,
         is_available: true,
         stock_quantity: 4,
+        custom_prices: [],
+        dependencies: [],
       },
     ],
   },
@@ -55,6 +59,8 @@ const mockProductParts: ProductPart[] = [
         price: 150,
         is_available: true,
         stock_quantity: 4,
+        custom_prices: [],
+        dependencies: [],
       },
       {
         id: '2-2',
@@ -63,6 +69,14 @@ const mockProductParts: ProductPart[] = [
         price: 250,
         is_available: true,
         stock_quantity: 4,
+        custom_prices: [
+          {
+            variant_id: '2-2',
+            dependent_variant_id: '1-2',
+            custom_price: 90,
+          },
+        ],
+        dependencies: [],
       },
     ],
   },
@@ -105,6 +119,7 @@ describe('CustomProductBuilder.vue', () => {
     expect(wrapper.vm.selectedChoices['1']).toEqual({
       name: 'Aluminum Frame',
       price: 300,
+      variant_id: '1-1',
     })
     expect(wrapper.vm.currentStep).toBe(2)
   })
@@ -156,5 +171,78 @@ describe('CustomProductBuilder.vue', () => {
     const undoButton = wrapper.find('button:disabled')
     expect(undoButton.exists()).toBe(true)
     expect(undoButton.text()).toBe('Undo')
+  })
+})
+
+describe('initialiseCustomPrices', () => {
+  it('should populate customPrices correctly with mock data', () => {
+    const wrapper = mount(BuilderWizard, {
+      props: { product: mockProduct, productParts: mockProductParts },
+    })
+
+    wrapper.vm.initialiseCustomPrices();
+
+    expect(wrapper.vm.customPrices).toEqual({
+      '2-2': {
+        price: 90,
+        dependentVariantId: '1-2',
+        dependentPartId: '1',
+      },
+    });
+  });
+})
+
+describe('calculateTotalPrice', () => {
+  it('should correctly calculate the total price with selected variants and custom prices', async () => {
+    const wrapper = mount(BuilderWizard, {
+      props: { product: mockProduct, productParts: mockProductParts },
+    })
+
+    wrapper.vm.selectedChoices = {
+      '1': { name: 'Aluminum Frame', price: 300, variant_id: '1-1' },
+      '2': { name: 'Racing Wheels', price: 250, variant_id: '2-2' },
+    }
+
+    wrapper.vm.customPrices = {
+      '2-2': {
+        price: 90,
+        dependentVariantId: '1-1',
+        dependentPartId: '1',
+      },
+    }
+
+    wrapper.vm.calculateTotalPrice()
+
+    const expectedPrice = mockProduct.base_price + 300 + 250 + 90
+    expect(wrapper.vm.totalPrice).toBe(expectedPrice)
+  })
+})
+
+
+describe('getAdjustedPrice', () => {
+  it('should apply the custom price for dependent variants', () => {
+    const wrapper = mount(BuilderWizard, {
+      props: { product: mockProduct, productParts: mockProductParts },
+    })
+
+    wrapper.vm.selectedChoices = {
+      '1': { name: 'Carbon Fiber Frame', price: 500, variant_id: '1-2' },
+      '2': { name: 'Racing Wheels', price: 250, variant_id: '2-2' },
+    }
+
+    wrapper.vm.customPrices = {
+      '2-2': {
+        price: 90,
+        dependentVariantId: '1-2',
+        dependentPartId: '1',
+      },
+    }
+
+    const basePrice = 250
+    const adjustedPrice = wrapper.vm.getAdjustedPrice('2-2', basePrice)
+
+    const expectedAdjustedPrice = basePrice + 90
+
+    expect(adjustedPrice).toBe(expectedAdjustedPrice)
   })
 })
